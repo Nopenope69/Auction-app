@@ -227,6 +227,17 @@ function broadcastRoom(roomId: string, message: any) {
   });
 }
 
+// Every AuctionRoom mutation returns a boolean and previously had its
+// result discarded here - a rejected bid, undo, RTM decision, etc. failed
+// completely silently (the ErrorMessage type existed but nothing ever sent
+// one). Callers below check the return value and use this to tell the
+// single connection that sent the rejected message why nothing happened.
+function sendError(ws: WebSocket, message: string) {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ERROR', message }));
+  }
+}
+
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url || '', 'http://localhost');
   const roomId = url.searchParams.get('room') || '';
@@ -291,10 +302,16 @@ wss.on('connection', (ws, req) => {
 
     switch (msg.type) {
       case 'PLACE_BID':
-        if (isTeam && meta.teamId) r.placeBid(meta.teamId, msg.amount);
+        if (isTeam && meta.teamId) {
+          if (!r.placeBid(meta.teamId, msg.amount)) {
+            sendError(ws, 'Bid rejected - the price or your purse balance changed. Check the live figures and try again.');
+          }
+        }
         break;
       case 'SET_ACTIVE_PLAYER':
-        if (isAdmin) r.setActivePlayer(msg.id);
+        if (isAdmin) {
+          if (!r.setActivePlayer(msg.id)) sendError(ws, 'Could not put that player on the block (already sold/unsold, or an invalid id).');
+        }
         break;
       case 'START_TIMER':
         if (isAdmin) r.startTimer();
@@ -303,16 +320,24 @@ wss.on('connection', (ws, req) => {
         if (isAdmin) r.pauseTimer();
         break;
       case 'MARK_SOLD':
-        if (isAdmin) r.markSold();
+        if (isAdmin) {
+          if (!r.markSold()) sendError(ws, 'Could not mark sold - there is no active player with a bid.');
+        }
         break;
       case 'MARK_UNSOLD':
-        if (isAdmin) r.markUnsold();
+        if (isAdmin) {
+          if (!r.markUnsold()) sendError(ws, 'Could not mark unsold - there is no active player on the block.');
+        }
         break;
       case 'EXERCISE_RTM':
-        if (isAdmin) r.exerciseRtm(msg.accept);
+        if (isAdmin) {
+          if (!r.exerciseRtm(msg.accept)) sendError(ws, 'No pending Right-to-Match decision for this player.');
+        }
         break;
       case 'UNDO_ACTION':
-        if (isAdmin) r.undo();
+        if (isAdmin) {
+          if (!r.undo()) sendError(ws, 'Nothing to undo.');
+        }
         break;
       case 'RESET':
         if (isAdmin) r.resetAuction();

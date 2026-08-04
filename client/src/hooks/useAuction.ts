@@ -87,6 +87,11 @@ export interface Reaction {
   timestamp: number;
 }
 
+export interface AuctionErrorEvent {
+  message: string;
+  id: number;
+}
+
 export interface AuctionState {
   roomId: string;
   name: string;
@@ -144,6 +149,7 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [state, setState] = useState<AuctionState>(EMPTY_STATE);
   const [reactionEmojiList, setReactionEmojiList] = useState<Reaction[]>([]);
+  const [lastError, setLastError] = useState<AuctionErrorEvent | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const prevRef = useRef<AuctionState>(EMPTY_STATE);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -196,6 +202,14 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
             ...prev,
             { id: Math.random().toString(), emoji: data.emoji, x: Math.random() * 80 + 10, timestamp: Date.now() },
           ]);
+        } else if (data.type === 'ERROR') {
+          // Server rejected the last mutation this client sent (stale bid,
+          // insufficient purse, nothing to undo, etc). Every screen's own
+          // client-side legality checks (canAfford/isBidDisabled and
+          // friends) are a preview, not a guarantee - this is the only path
+          // by which a real rejection ever reaches the user instead of the
+          // button just silently doing nothing.
+          setLastError({ message: data.message, id: Date.now() });
         }
       } catch (e) {
         console.error('Failed to parse message', e);
@@ -230,6 +244,14 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!lastError) return;
+    const timeout = setTimeout(() => {
+      setLastError((current) => (current?.id === lastError.id ? null : current));
+    }, 4000);
+    return () => clearTimeout(timeout);
+  }, [lastError]);
+
   const send = (msg: object) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(msg));
@@ -242,6 +264,8 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
     connectionStatus,
     ...state,
     reactionEmojiList,
+    lastError,
+    clearError: () => setLastError(null),
     placeBid: (amount?: number) => send({ type: 'PLACE_BID', teamId, amount }),
     sendReaction: (emoji: string) => send({ type: 'REACTION', emoji }),
     setActivePlayer: (id: string) => send({ type: 'SET_ACTIVE_PLAYER', id }),
