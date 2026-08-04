@@ -83,17 +83,26 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
   const isHighestBidder = auction.highestBidder === teamId;
   const purse = team?.purse ?? 0;
 
-  // Next standard tier increment
+  // Next standard tier increment. Fallback must match the server's
+  // (server/src/auctionRoom.ts incrementFor: last configured tier's
+  // increment, not a hardcoded value) - otherwise the client's affordability
+  // preview and enable/disable state can disagree with what the server
+  // actually accepts once the bid passes the last tier's `upTo`.
   const nextIncrement = (() => {
-    const tier = auction.rules.incrementTiers.find((t) => currentVal < t.upTo);
-    return tier ? tier.increment : 5;
+    const tiers = auction.rules.incrementTiers;
+    const tier = tiers.find((t) => currentVal < t.upTo);
+    if (tier) return tier.increment;
+    return tiers.length > 0 ? tiers[tiers.length - 1].increment : 5;
   })();
   const nextBidAmount = currentVal + nextIncrement;
   const canAfford = purse >= nextBidAmount;
   const isBidDisabled = isHighestBidder || !canAfford || !auction.activePlayer;
 
-  // Purse usage percentage for visual gauge
-  const initialPurse = 1000;
+  // Purse usage percentage for visual gauge. Must come from the wire's
+  // team.originalPurse (organiser-configured per room), not a hardcoded
+  // 1000 - otherwise this is silently wrong for any room whose purse isn't
+  // exactly 1000L.
+  const initialPurse = team?.originalPurse ?? purse;
   const spent = initialPurse - purse;
   const spentPercent = Math.min(100, Math.max(0, (spent / initialPurse) * 100));
 
@@ -104,6 +113,30 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden relative font-sans">
       {/* Floating Emoji Reactions Layer */}
       <FloatingReactions reactions={auction.reactionEmojiList} />
+
+      {/* Server-rejected action banner. The bid/increment math above is a
+          client-side preview, not a guarantee - this is what tells a
+          bidder why a tap silently did nothing (stale price, purse just
+          ran out to another bid, etc). */}
+      <AnimatePresence>
+        {auction.lastError && (
+          <motion.div
+            key={auction.lastError.id}
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] px-4 py-3 rounded-2xl bg-rose-950/95 border border-rose-500/40 text-rose-100 text-sm font-semibold shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3"
+          >
+            <span>{auction.lastError.message}</span>
+            <button
+              onClick={() => auction.clearError()}
+              className="shrink-0 text-rose-300 hover:text-white text-xs font-bold uppercase tracking-wider"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* TOP NAVBAR / TEAM PURSE STATUS */}
       <header className="p-4 bg-slate-900/90 backdrop-blur-xl border-b border-[rgba(255,255,255,0.08)] z-20">
