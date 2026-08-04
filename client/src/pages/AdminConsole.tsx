@@ -22,20 +22,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
+  // Narration (sound + AI voice) is NOT triggered here. useAuction.ts
+  // already announces sold/unsold once, off of the server's actual
+  // outcome (see its SYNC diff handler) - not the admin's guess of what's
+  // about to happen. Narrating here too used to double-fire, and would
+  // announce "Sold to X" even when RTM enabled turned the click into a
+  // pending Right-to-Match decision instead of a real sale.
   const handleSold = () => {
-    AudioEngine.playSoldSound();
-    AIAuctioneer.announceSold(
-      auction.activePlayer?.name || 'Player',
-      auction.teams.find((t) => t.id === auction.highestBidder)?.name || 'Winning Team',
-      auction.currentBid > 0 ? auction.currentBid : auction.activePlayer?.basePrice || 0
-    );
     auction.markSold();
     confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
   };
 
   const handleUnsold = () => {
-    AudioEngine.playTimerTick();
-    AIAuctioneer.announceUnsold(auction.activePlayer?.name || 'Player');
     auction.markUnsold();
   };
 
@@ -101,6 +99,29 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col relative font-sans">
       <FloatingReactions reactions={auction.reactionEmojiList} />
+
+      {/* Server-rejected action banner - undo with nothing to undo, RTM
+          exercised with no pending decision, etc. See useAuction.ts /
+          server/src/index.ts sendError for why this exists. */}
+      <AnimatePresence>
+        {auction.lastError && (
+          <motion.div
+            key={auction.lastError.id}
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] px-4 py-3 rounded-2xl bg-rose-950/95 border border-rose-500/40 text-rose-100 text-sm font-semibold shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3"
+          >
+            <span>{auction.lastError.message}</span>
+            <button
+              onClick={() => auction.clearError()}
+              className="shrink-0 text-rose-300 hover:text-white text-xs font-bold uppercase tracking-wider"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* HEADER */}
       <header className="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-[rgba(255,255,255,0.08)] gap-4">
