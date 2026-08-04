@@ -7,6 +7,7 @@ import { AudioEngine } from './AudioEngine';
 interface TinderCardStackProps {
   activePlayer: Player | null;
   upcomingPlayers?: Player[];
+  /** The value to display - already resolved to "current bid, or base price if no bid yet" by the caller (see useAuctionDerived.effectiveBid). This component doesn't re-derive it. */
   currentBid: number;
   highestBidderTeam?: Team | null;
   onBid: () => void;
@@ -90,7 +91,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
   }
 
   const photo = activePlayer.cricheroesPhotoUrl || activePlayer.photoUrl;
-  const displayVal = currentBid > 0 ? currentBid : activePlayer.basePrice;
+  const displayVal = currentBid;
 
   // Gather stats entries
   const manualStats = (Object.keys(STAT_LABELS) as (keyof typeof STAT_LABELS)[])

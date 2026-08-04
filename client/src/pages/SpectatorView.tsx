@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuction, Role } from '../hooks/useAuction';
+import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { TournamentSimulator } from '../components/TournamentSimulator';
 import { AnalyticsPanel } from '../components/AnalyticsPanel';
 import { FeaturedPlayerCard } from '../components/FeaturedPlayerCard';
@@ -19,9 +20,10 @@ interface SpectatorViewProps {
 
 export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, role, teamId }) => {
   const auction = useAuction({ roomId, token, role, teamId });
+  const derived = useAuctionDerived(auction); // spectator - no "my team"
   const [showSimulator, setShowSimulator] = useState(false);
 
-  const highestBidderTeam = auction.teams.find((t) => t.id === auction.highestBidder);
+  const highestBidderTeam = derived.highestBidderTeam;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col relative font-sans">
@@ -87,7 +89,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
           <div className="w-full lg:w-72 bg-slate-950/80 border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 text-center flex flex-col items-center justify-center">
             <div className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-1">Current Highest Bid</div>
             <div className="text-5xl font-black font-mono text-emerald-400 mb-4 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-              {auction.currentBid > 0 ? auction.currentBid : auction.activePlayer.basePrice} L
+              {derived.effectiveBid} L
             </div>
             <div className="text-xs font-semibold text-slate-300">
               Highest Bidder:

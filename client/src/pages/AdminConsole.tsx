@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useAuction, Role } from '../hooks/useAuction';
+import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { Play, Pause, CheckCircle, XCircle, RotateCcw, Upload, RefreshCw, Download, Link2, Loader2, Award, Gavel, Shield, Sparkles, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { buildResultsCsv, downloadTextFile } from '../lib/csvExport';
@@ -19,6 +20,7 @@ interface AdminConsoleProps {
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role, teamId }) => {
   const auction = useAuction({ roomId, token, role, teamId });
+  const derived = useAuctionDerived(auction); // no teamId - admin has no "my team"
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
@@ -296,13 +298,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
               {/* LIVE BID & TIMER WHEEL */}
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="text-5xl font-black font-mono text-emerald-400 mb-2 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-                  {auction.currentBid > 0 ? auction.currentBid : auction.activePlayer.basePrice} Lakhs
+                  {derived.effectiveBid} Lakhs
                 </div>
                 <div className="text-xs font-semibold text-slate-400 mb-4">
                   Highest Bidder:{' '}
-                  {auction.highestBidder
-                    ? auction.teams.find((t) => t.id === auction.highestBidder)?.name
-                    : 'No bids yet'}
+                  {derived.highestBidderTeam ? derived.highestBidderTeam.name : 'No bids yet'}
                 </div>
 
                 {/* Animated Countdown Timer Bar */}

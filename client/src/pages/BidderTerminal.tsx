@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuction, Role } from '../hooks/useAuction';
+import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { PitchRoster } from '../components/PitchRoster';
 import { TinderCardStack } from '../components/TinderCardStack';
 import { FloatingReactions } from '../components/FloatingReactions';
@@ -78,33 +79,19 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
     );
   }
 
-  const currentVal = auction.currentBid > 0 ? auction.currentBid : (auction.activePlayer?.basePrice || 0);
-  const highestBidderTeam = auction.teams.find((t) => t.id === auction.highestBidder);
-  const isHighestBidder = auction.highestBidder === teamId;
-  const purse = team?.purse ?? 0;
-
-  // Next standard tier increment. Fallback must match the server's
-  // (server/src/auctionRoom.ts incrementFor: last configured tier's
-  // increment, not a hardcoded value) - otherwise the client's affordability
-  // preview and enable/disable state can disagree with what the server
-  // actually accepts once the bid passes the last tier's `upTo`.
-  const nextIncrement = (() => {
-    const tiers = auction.rules.incrementTiers;
-    const tier = tiers.find((t) => currentVal < t.upTo);
-    if (tier) return tier.increment;
-    return tiers.length > 0 ? tiers[tiers.length - 1].increment : 5;
-  })();
-  const nextBidAmount = currentVal + nextIncrement;
-  const canAfford = purse >= nextBidAmount;
-  const isBidDisabled = isHighestBidder || !canAfford || !auction.activePlayer;
-
-  // Purse usage percentage for visual gauge. Must come from the wire's
-  // team.originalPurse (organiser-configured per room), not a hardcoded
-  // 1000 - otherwise this is silently wrong for any room whose purse isn't
-  // exactly 1000L.
-  const initialPurse = team?.originalPurse ?? purse;
-  const spent = initialPurse - purse;
-  const spentPercent = Math.min(100, Math.max(0, (spent / initialPurse) * 100));
+  // All auction-math (effective bid, highest bidder, purse %, next legal
+  // increment) comes from one place now - see useAuctionDerived.ts for why.
+  const derived = useAuctionDerived(auction, teamId);
+  const currentVal = derived.effectiveBid;
+  const highestBidderTeam = derived.highestBidderTeam;
+  const isHighestBidder = derived.isHighestBidder;
+  const purse = derived.purse ?? 0;
+  const nextIncrement = derived.nextIncrement;
+  const nextBidAmount = derived.nextBidAmount;
+  const canAfford = derived.canAfford ?? false;
+  const isBidDisabled = derived.isBidDisabled ?? true;
+  const spent = (derived.originalPurse ?? purse) - purse;
+  const spentPercent = derived.spentPercent ?? 0;
 
   // Upcoming players queue for Tinder card stack
   const upcomingPlayers = auction.players.filter((p) => p.status === 'available' && p.id !== auction.activePlayer?.id);
@@ -202,7 +189,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
             <TinderCardStack
               activePlayer={auction.activePlayer}
               upcomingPlayers={upcomingPlayers}
-              currentBid={auction.currentBid}
+              currentBid={currentVal}
               highestBidderTeam={highestBidderTeam}
               onBid={() => auction.placeBid(nextBidAmount)}
               onPass={() => {}}

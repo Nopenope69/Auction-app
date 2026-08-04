@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, Award, Flame, Sparkles } from 'lucide-react';
 import { useAuction, Role } from '../hooks/useAuction';
+import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { FloatingReactions } from '../components/FloatingReactions';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,6 +14,7 @@ interface BroadcastOverlayProps {
 
 export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, token, role, teamId }) => {
   const auction = useAuction({ roomId, token, role, teamId });
+  const derived = useAuctionDerived(auction); // broadcast overlay - no "my team"
 
   // Last 5 completed outcomes
   const recentOutcomes = [...auction.biddingLog]
@@ -21,7 +23,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
     .reverse();
 
   const photo = auction.activePlayer?.cricheroesPhotoUrl || auction.activePlayer?.photoUrl;
-  const highestBidderTeam = auction.teams.find((t) => t.id === auction.highestBidder);
+  const highestBidderTeam = derived.highestBidderTeam;
 
   return (
     <div className="w-screen h-screen chroma-key-bg relative overflow-hidden flex flex-col justify-end p-8 font-sans">
@@ -124,7 +126,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                 <div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Bidding Amount</div>
                   <div className="text-5xl font-black font-mono text-emerald-400 drop-shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-                    {auction.currentBid > 0 ? auction.currentBid : auction.activePlayer.basePrice} L
+                    {derived.effectiveBid} L
                   </div>
                 </div>
 
