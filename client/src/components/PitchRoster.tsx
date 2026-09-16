@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Award, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
+import { Award, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export interface Player {
   id: string;
@@ -7,6 +7,7 @@ export interface Player {
   role: string;
   basePrice: number;
   rating?: number;
+  soldPrice?: number;
 }
 
 interface PitchRosterProps {
@@ -42,109 +43,121 @@ export const PitchRoster: React.FC<PitchRosterProps> = ({ teamName, players }) =
   }, [batsmen, bowlers, allRounders, wicketKeepers, players]);
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full p-2 text-slate-100 font-sans">
-      {/* SQUAD RATINGS & CHEMISTRY SUMMARY */}
-      <div className="bg-slate-900/90 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-2xl p-4 shadow-xl">
+    <div className="flex flex-col gap-4 w-full h-full text-[#f2f1ed] font-sans">
+      {/* SQUAD RATINGS & CHEMISTRY SUMMARY (Boxy 16px geometry) */}
+      <div className="bg-[#111827] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-4 shadow-xl">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="font-black text-sm text-white flex items-center gap-1.5">
-            <Award size={16} className="text-amber-400" /> {teamName} Squad Setup
+          <h3 className="font-display font-semibold text-sm text-[#f2f1ed] flex items-center gap-2">
+            <Award size={15} className="text-sky-400" /> {teamName} Squad Balance
           </h3>
-          <span className="text-xs font-mono font-bold text-amber-400">Rating: {avgRating}</span>
+          <span className="text-xs font-mono font-bold text-sky-400 tabular-nums">Rating: {avgRating}</span>
         </div>
 
         {/* Chemistry gauge bar */}
         <div className="mb-3">
-          <div className="flex justify-between text-[10px] text-slate-400 font-bold mb-1">
+          <div className="flex justify-between text-[10px] text-[#8c8a82] font-semibold mb-1">
             <span>Squad Chemistry</span>
-            <span>{chemistryIndex}%</span>
+            <span className="font-mono tabular-nums">{chemistryIndex}%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+          <div className="w-full h-1.5 bg-[#0b0a09] rounded-full overflow-hidden border border-[rgba(242,241,237,0.08)]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-500"
+              className="h-full bg-sky-500 rounded-full transition-all duration-300"
               style={{ width: `${chemistryIndex}%` }}
             />
           </div>
         </div>
 
-        {/* Balance Warnings */}
-        <div className="space-y-1 text-[11px] font-semibold text-amber-300">
-          {wicketKeepers.length === 0 && (
-            <p className="flex items-center gap-1">
-              <AlertTriangle size={12} className="text-amber-400 shrink-0" /> Missing Wicketkeeper!
-            </p>
-          )}
-          {batsmen.length < 4 && (
-            <p className="flex items-center gap-1">
-              <AlertTriangle size={12} className="text-amber-400 shrink-0" /> Need more batsmen ({batsmen.length}/4)
-            </p>
-          )}
-          {bowlers.length < 4 && (
-            <p className="flex items-center gap-1">
-              <AlertTriangle size={12} className="text-amber-400 shrink-0" /> Need more bowlers ({bowlers.length}/4)
-            </p>
-          )}
-          {players.length > 0 && players.length < 11 && (
-            <p className="flex items-center gap-1 text-slate-400">
-              <ShieldCheck size={12} className="text-emerald-400 shrink-0" /> Squad understaffed ({players.length}/11)
-            </p>
-          )}
+        {/* Tactical role breakdown badges */}
+        <div className="grid grid-cols-4 gap-2 text-center text-xs">
+          <div className="bg-[#0b0a09] rounded-lg p-2 border border-[rgba(242,241,237,0.08)]">
+            <div className="text-[10px] text-[#8c8a82] font-bold uppercase">BAT</div>
+            <div className="font-mono font-bold text-sky-300 tabular-nums">{batsmen.length}/4</div>
+          </div>
+          <div className="bg-[#0b0a09] rounded-lg p-2 border border-[rgba(242,241,237,0.08)]">
+            <div className="text-[10px] text-[#8c8a82] font-bold uppercase">BOWL</div>
+            <div className="font-mono font-bold text-sky-300 tabular-nums">{bowlers.length}/4</div>
+          </div>
+          <div className="bg-[#0b0a09] rounded-lg p-2 border border-[rgba(242,241,237,0.08)]">
+            <div className="text-[10px] text-[#8c8a82] font-bold uppercase">AR</div>
+            <div className="font-mono font-bold text-sky-300 tabular-nums">{allRounders.length}/2</div>
+          </div>
+          <div className="bg-[#0b0a09] rounded-lg p-2 border border-[rgba(242,241,237,0.08)]">
+            <div className="text-[10px] text-[#8c8a82] font-bold uppercase">WK</div>
+            <div className="font-mono font-bold text-sky-300 tabular-nums">{wicketKeepers.length}/1</div>
+          </div>
         </div>
       </div>
 
-      {/* GRAPHICAL PITCH OVAL */}
-      <div className="relative flex-1 min-h-[380px] rounded-3xl bg-gradient-to-b from-emerald-900/40 via-emerald-950/60 to-slate-950 border-2 border-emerald-500/30 overflow-hidden flex items-center justify-center p-4 shadow-2xl">
-        {/* Grass texture lines */}
-        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
+      {/* PITCH VISUALIZER (Boxy 16px geometry) */}
+      <div className="relative flex-1 min-h-[300px] bg-[#111827] border border-[rgba(242,241,237,0.08)] rounded-[16px] overflow-hidden p-4 flex flex-col justify-between shadow-2xl">
+        {/* Subtle Pitch Grass Grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none" />
 
-        {/* Pitch Rectangle Block */}
-        <div className="absolute w-20 h-52 bg-amber-200/20 border border-amber-400/40 rounded-sm flex flex-col justify-between p-2 shadow-inner">
-          <div className="w-full h-1 bg-white/60" />
-          <div className="w-full h-1 bg-white/60" />
+        {/* BATSMEN ZONE */}
+        <div className="relative z-10">
+          <span className="text-[10px] uppercase font-bold text-[#8c8a82] tracking-wider block mb-1.5">
+            Top Order &amp; Batsmen ({batsmen.length})
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {batsmen.map((p) => (
+              <div
+                key={p.id}
+                className="px-2.5 py-1 rounded-lg bg-[#0b0a09] border border-sky-500/30 text-xs text-[#f2f1ed] flex items-center gap-1.5 shadow-sm"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                <span className="font-semibold truncate max-w-[110px]">{p.name}</span>
+                {p.soldPrice && <span className="font-mono text-[10px] text-sky-400 tabular-nums">({p.soldPrice}L)</span>}
+              </div>
+            ))}
+            {batsmen.length === 0 && <span className="text-xs text-[#8c8a82] italic">No batsmen signed yet</span>}
+          </div>
         </div>
 
-        {/* Wicketkeeper */}
-        <div className="absolute top-6 flex gap-1.5 flex-wrap justify-center">
-          {wicketKeepers.map((p) => (
-            <span key={p.id} className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shadow-md">
-              🧤 {p.name.split(' ')[0]}
-            </span>
-          ))}
+        {/* ALL-ROUNDERS & WICKETKEEPERS ZONE */}
+        <div className="relative z-10 my-2">
+          <span className="text-[10px] uppercase font-bold text-[#8c8a82] tracking-wider block mb-1.5">
+            Core Utility ({allRounders.length + wicketKeepers.length})
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {wicketKeepers.map((p) => (
+              <div
+                key={p.id}
+                className="px-2.5 py-1 rounded-lg bg-[#0b0a09] border border-amber-500/30 text-xs text-[#f2f1ed] flex items-center gap-1.5 shadow-sm"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="font-semibold truncate max-w-[110px]">{p.name} (WK)</span>
+              </div>
+            ))}
+            {allRounders.map((p) => (
+              <div
+                key={p.id}
+                className="px-2.5 py-1 rounded-lg bg-[#0b0a09] border border-indigo-500/30 text-xs text-[#f2f1ed] flex items-center gap-1.5 shadow-sm"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                <span className="font-semibold truncate max-w-[110px]">{p.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Batsmen */}
-        <div className="absolute top-24 flex gap-1.5 flex-wrap justify-center">
-          {batsmen.map((p) => (
-            <span key={p.id} className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500 text-white shadow-md">
-              🏏 {p.name.split(' ')[0]}
-            </span>
-          ))}
-        </div>
-
-        {/* Bowlers */}
-        <div className="absolute bottom-6 flex gap-1.5 flex-wrap justify-center">
-          {bowlers.map((p) => (
-            <span key={p.id} className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-md">
-              ⚽ {p.name.split(' ')[0]}
-            </span>
-          ))}
-        </div>
-
-        {/* All-Rounders Left */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
-          {allRounders.slice(0, Math.ceil(allRounders.length / 2)).map((p) => (
-            <span key={p.id} className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500 text-white shadow-md">
-              ⭐ {p.name.split(' ')[0]}
-            </span>
-          ))}
-        </div>
-
-        {/* All-Rounders Right */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
-          {allRounders.slice(Math.ceil(allRounders.length / 2)).map((p) => (
-            <span key={p.id} className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500 text-white shadow-md">
-              ⭐ {p.name.split(' ')[0]}
-            </span>
-          ))}
+        {/* BOWLERS ZONE */}
+        <div className="relative z-10">
+          <span className="text-[10px] uppercase font-bold text-[#8c8a82] tracking-wider block mb-1.5">
+            Bowling Attack ({bowlers.length})
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {bowlers.map((p) => (
+              <div
+                key={p.id}
+                className="px-2.5 py-1 rounded-lg bg-[#0b0a09] border border-emerald-500/30 text-xs text-[#f2f1ed] flex items-center gap-1.5 shadow-sm"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="font-semibold truncate max-w-[110px]">{p.name}</span>
+                {p.soldPrice && <span className="font-mono text-[10px] text-emerald-400 tabular-nums">({p.soldPrice}L)</span>}
+              </div>
+            ))}
+            {bowlers.length === 0 && <span className="text-xs text-[#8c8a82] italic">No bowlers signed yet</span>}
+          </div>
         </div>
       </div>
     </div>

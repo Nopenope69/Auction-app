@@ -1,188 +1,302 @@
 @import "tailwindcss";
 
-:root {
-  --bg-base: #0A0F1C;
-  --bg-card: rgba(25, 33, 50, 0.7);
-  --border-card: rgba(255, 255, 255, 0.05);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-neon: #f59e0b; /* neon amber/orange */
-  --accent-success: #10b981; /* neon green */
-  --accent-danger: #e11d48; /* crimson-rose */
-  --accent-glow: rgba(245, 158, 11, 0.5);
-  
-  --font-family: system-ui, -apple-system, sans-serif;
+@layer base {
+  /* ==========================================================================
+     THEME 1: PEAR.NO (Warm Obsidian Press, Paper Ivory, Cerulean Sky, Sand Gold) - DEFAULT
+     Inspired by pear.no: #0b0a09, #f2f1ed, #111827, #1f2937, #015186, #c2a365.
+     Boxy 16px geometry, 8-point rhythm, 1 display serif font, 16px-18px body.
+     ========================================================================== */
+  :root,
+  :root[data-theme="pear"] {
+    --bg-base: #0b0a09;               /* Pear Press: deep warm charcoal obsidian */
+    --bg-surface: #111827;            /* Deep midnight slate container */
+    --bg-elevated: #1f2937;           /* Elevated tactical slate card */
+    --bg-subtle: #161f30;             /* Subdued slate layer */
+
+    --border-subtle: rgba(242, 241, 237, 0.08);
+    --border-prominent: rgba(56, 189, 248, 0.35);
+    --border-focus: #38bdf8;
+
+    --text-primary: #f2f1ed;          /* Pear Paper: warm ivory bone white */
+    --text-secondary: #8c8a82;        /* Soft warm ink */
+    --text-tertiary: #54534f;
+
+    --accent-primary: #38bdf8;        /* Pear Electric Sky / Cerulean (#015186 / #38bdf8) */
+    --accent-primary-hover: #0284c7;
+    --accent-primary-fg: #0b0a09;
+    --accent-secondary: #c2a365;      /* Pear Sand Gold */
+    --accent-gold: #c2a365;           /* Sand Gold */
+    --accent-sky: #38bdf8;            /* Electric Sky */
+    --accent-success: #10b981;        /* Pitch Grass Green */
+    --accent-danger: #ef4444;         /* Signal Red */
+    --text-muted: #8c8a82;            /* Muted ink */
+    --accent-bid: #38bdf8;            /* Sky Blue Action */
+    --accent-alert: #ef4444;          /* Signal Red */
+    --accent-info: #015186;           /* Neoclassical Sky */
+
+    --card-radius: 16px;              /* Boxy 16px-18px geometry */
+    --badge-radius: 6px;
+    --button-radius: 12px;
+
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-display: "Flecha S", "Source Serif 4", "Playfair Display", Georgia, serif;
+  }
+
+  /* ==========================================================================
+     THEME 2: F1 PIT-WALL TELEMETRY (Engineering Monolith / High-Frequency)
+     Pure pitch black, matte carbon fiber, acid volt lime, stark white, telemetry cyan, timing green, red flag.
+     ========================================================================== */
+  :root[data-theme="telemetry"] {
+    --bg-base: #050505;               /* Matte carbon fiber base */
+    --bg-surface: #0d0e12;            /* Monolith chassis surface */
+    --bg-elevated: #16171d;           /* Elevated telemetry panel */
+    --bg-subtle: #111217;             /* Subtle cockpit layer */
+
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-prominent: rgba(212, 255, 0, 0.35);
+    --border-focus: #d4ff00;
+
+    --text-primary: #ffffff;          /* Primary Telemetry White */
+    --text-secondary: #94949e;        /* Cool Silver secondary */
+    --text-tertiary: #52525c;         /* Dark tactical tertiary */
+    --text-muted: #94949e;
+
+    --accent-primary: #d4ff00;        /* Acid Volt Citron */
+    --accent-primary-hover: #b8e000;
+    --accent-primary-fg: #000000;
+    --accent-secondary: #00f0ff;      /* Electric Telemetry Cyan */
+    --accent-gold: #d4ff00;           /* Mapped to Acid Volt */
+    --accent-sky: #00f0ff;            /* Electric Telemetry Cyan */
+    --accent-success: #00e676;        /* F1 Timing Sector Green */
+    --accent-danger: #ff3333;         /* FIA Red Flag Alert */
+    --accent-bid: #d4ff00;            /* Acid Volt Action */
+    --accent-alert: #ff3333;          /* Signal Flare Red */
+    --accent-info: #00f0ff;           /* Telemetry Cyan */
+
+    --card-radius: 16px;
+    --badge-radius: 4px;
+    --button-radius: 8px;
+
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-display: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* ==========================================================================
+     THEME 3: LORD'S & SOTHEBY'S (Prestige Heritage / Haute Horlogerie)
+     Deep warm obsidian, smoked basalt, champagne gold, ivory text, sage jade.
+     ========================================================================== */
+  :root[data-theme="heritage"] {
+    --bg-base: #090a0c;
+    --bg-surface: #111317;
+    --bg-elevated: #181b21;
+    --bg-subtle: #14161c;
+
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-prominent: rgba(212, 175, 55, 0.28);
+    --border-focus: #d4af37;
+
+    --text-primary: #fbfbf9;
+    --text-secondary: #8e929a;
+    --text-tertiary: #5a5e66;
+
+    --accent-primary: #d4af37;        /* Gilded Champagne Gold */
+    --accent-primary-hover: #e5c467;
+    --accent-primary-fg: #090a0c;
+    --accent-secondary: #8c7322;
+    --accent-bid: #2d9f6f;
+    --accent-alert: #991b1b;
+    --accent-info: #3874cb;
+
+    --card-radius: 16px;
+    --badge-radius: 6px;
+    --button-radius: 12px;
+
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 16px; /* 16px base body font size */
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Universal tabular numerals for metrics, timers, and financial balances */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Custom minimal, accessible scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(242, 241, 237, 0.12);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(242, 241, 237, 0.22);
+  }
+
+  /* Text selection with Pear Cerulean */
+  ::selection {
+    background: #015186;
+    color: #f2f1ed;
+  }
+
+  /* Reduced motion accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
+/* Operational Surface Utility Classes */
+.bg-base {
   background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  min-height: 100vh;
-  overflow-x: hidden;
 }
 
-/* Glassmorphism Classes */
-.glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-card);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.bg-surface {
+  background-color: var(--bg-surface);
 }
 
-.glass-panel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+.bg-elevated {
+  background-color: var(--bg-elevated);
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  margin-top: 0;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+.border-subtle {
+  border-color: var(--border-subtle);
 }
 
-.text-neon {
-  color: var(--accent-neon);
-  text-shadow: 0 0 10px var(--accent-glow);
+.border-prominent {
+  border-color: var(--border-prominent);
 }
 
-.text-success { color: var(--accent-success); }
-.text-danger { color: var(--accent-danger); }
-.text-primary { color: var(--text-primary); }
-.text-secondary { color: var(--text-secondary); }
-.border-l-accent-neon { border-left-color: var(--accent-neon); }
-.border-t-accent-neon { border-top-color: var(--accent-neon); }
-
-/* Buttons */
-.btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
-  border: 1px solid var(--border-card);
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.text-accent-primary {
+  color: var(--accent-primary);
 }
 
-.btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.02);
+.bg-accent-primary {
+  background-color: var(--accent-primary);
+  color: var(--accent-primary-fg);
 }
 
-.btn:active:not(:disabled) {
-  transform: scale(0.98);
+.text-accent-bid {
+  color: var(--accent-bid);
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.border-accent-primary {
+  border-color: var(--accent-primary);
 }
 
-.btn-primary {
-  background: var(--accent-neon);
-  color: #000;
-  border: none;
-}
-.btn-primary:hover:not(:disabled) {
-  background: #fbbf24;
-  box-shadow: 0 0 15px var(--accent-glow);
+.font-display {
+  font-family: var(--font-display);
 }
 
-.btn-success {
-  background: var(--accent-success);
-  color: #fff;
-  border: none;
-}
-.btn-danger {
-  background: var(--accent-danger);
-  color: #fff;
-  border: none;
+/* Focus styling */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 /* Animations */
-@keyframes heartbeat {
-  0% { transform: scale(1); }
-  14% { transform: scale(1.1); }
-  28% { transform: scale(1); }
-  42% { transform: scale(1.1); }
-  70% { transform: scale(1); }
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-.animate-heartbeat {
-  animation: heartbeat 1.5s infinite;
+.animate-pulse-subtle {
+  animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes floatUp {
-  0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-  10% { opacity: 1; transform: translateY(10px) scale(1.1); }
-  90% { opacity: 1; transform: translateY(-80px) scale(1); }
-  100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
+/* Broadcast Chroma Key utilities */
+.chroma-green {
+  background-color: #00ff00 !important;
 }
 
-.floating-reaction {
-  position: absolute;
-  pointer-events: none;
-  animation: floatUp 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  font-size: 24px;
-  z-index: 1000;
+.chroma-magenta {
+  background-color: #ff00ff !important;
 }
 
-@keyframes revealSlide {
-  from { opacity: 0; transform: translateY(30px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+.chroma-transparent {
+  background-color: transparent !important;
 }
 
-.player-reveal {
-  animation: revealSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+/* ==========================================================================
+   THEME ADAPTATION UTILITIES (F1 Telemetry Overrides)
+   Ensures hardcoded Sand Gold (#c2a365) and Sky Blue (#38bdf8) utility classes
+   dynamically map to Acid Volt (#d4ff00) and Electric Telemetry Cyan (#00f0ff)
+   under the telemetry theme without breaking component structure.
+   ========================================================================== */
+[data-theme="telemetry"] [class*="text-[#c2a365]"],
+[data-theme="telemetry"] .text-accent-gold {
+  color: #d4ff00 !important;
 }
 
-/* Layout Utilities */
-.flex { display: flex; }
-.flex-col { display: flex; flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.gap-2 { gap: 0.5rem; }
-.gap-4 { gap: 1rem; }
-.grid { display: grid; }
-.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-.w-full { width: 100%; }
-.h-full { height: 100%; }
-.p-4 { padding: 1rem; }
-.p-8 { padding: 2rem; }
-.m-4 { margin: 1rem; }
-.mt-4 { margin-top: 1rem; }
-.mb-4 { margin-bottom: 1rem; }
-
-/* Broadcast Overlay specific */
-.chroma-key-bg {
-  background-color: #00ff00 !important; /* chroma key green */
+[data-theme="telemetry"] [class*="bg-[#c2a365]"] {
+  background-color: #d4ff00 !important;
+  color: #000000 !important;
 }
 
-input[type="text"], input[type="number"], select {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-card);
-  color: var(--text-primary);
-  padding: 8px 12px;
-  border-radius: 6px;
-  outline: none;
+[data-theme="telemetry"] [class*="bg-[#c2a365]/10"],
+[data-theme="telemetry"] [class*="bg-[#c2a365]/15"],
+[data-theme="telemetry"] [class*="bg-[#c2a365]/20"],
+[data-theme="telemetry"] [class*="bg-[#c2a365]/25"],
+[data-theme="telemetry"] [class*="bg-[#c2a365]/30"] {
+  background-color: rgba(212, 255, 0, 0.12) !important;
 }
 
-input:focus, select:focus {
-  border-color: var(--accent-neon);
+[data-theme="telemetry"] [class*="border-[#c2a365]"] {
+  border-color: rgba(212, 255, 0, 0.35) !important;
 }
+
+[data-theme="telemetry"] [class*="hover:border-[#c2a365]"]:hover {
+  border-color: #d4ff00 !important;
+}
+
+[data-theme="telemetry"] [class*="text-[#38bdf8]"],
+[data-theme="telemetry"] [class*="text-sky-400"] {
+  color: #00f0ff !important;
+}
+
+[data-theme="telemetry"] [class*="bg-[#38bdf8]"],
+[data-theme="telemetry"] [class*="bg-sky-500"] {
+  background-color: #00f0ff !important;
+  color: #000000 !important;
+}
+
+[data-theme="telemetry"] [class*="bg-sky-500/10"],
+[data-theme="telemetry"] [class*="bg-sky-500/15"],
+[data-theme="telemetry"] [class*="bg-sky-500/20"] {
+  background-color: rgba(0, 240, 255, 0.12) !important;
+}
+
+[data-theme="telemetry"] [class*="border-sky-500"] {
+  border-color: rgba(0, 240, 255, 0.35) !important;
+}
+
+[data-theme="telemetry"] ::selection {
+  background: #d4ff00;
+  color: #000000;
+}
+

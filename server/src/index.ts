@@ -22,6 +22,7 @@ import { parseCsv } from './csv';
 import * as db from './db';
 import { getRoom, forgetRoom } from './roomManager';
 import { syncPlayerCricheroes } from './cricheroesSync';
+import { seedDemoRoom } from './seedDemo';
 
 dotenv.config();
 
@@ -185,6 +186,24 @@ app.post('/api/auctions', (req, res) => {
   } catch (err: any) {
     console.error('Error creating auction:', err);
     res.status(500).json({ error: err.message || 'Failed to create auction.' });
+  }
+});
+
+app.get('/api/demo/links', (_req, res) => {
+  try {
+    const demo = seedDemoRoom(false);
+    res.json(demo);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to get demo room.' });
+  }
+});
+
+app.post('/api/demo/reset', (_req, res) => {
+  try {
+    const demo = seedDemoRoom(true);
+    res.json({ success: true, demo });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to reset demo room.' });
   }
 });
 
@@ -691,6 +710,11 @@ wss.on('connection', (ws, req) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
+  try {
+    seedDemoRoom(false);
+  } catch (err) {
+    console.warn('[DEMO] Could not auto-seed demo room:', err);
+  }
   server.listen(port, () => {
     console.log(`Cricket Auction Platform server running on port ${port}`);
   });

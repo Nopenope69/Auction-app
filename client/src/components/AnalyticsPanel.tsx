@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { BarChart3, Flame, Award, DollarSign, PieChart, TrendingUp } from 'lucide-react';
+import { BarChart3, Flame, Award, DollarSign, PieChart, TrendingUp, ChevronRight } from 'lucide-react';
 import type { Player, Team } from '../hooks/useAuction';
 
 interface AnalyticsPanelProps {
@@ -15,8 +15,11 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({ teams, players }
 
     const totalSpend = sold.reduce((sum, p) => sum + (p.soldPrice || 0), 0);
 
-    const priciest = [...sold].sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0)).slice(0, 3);
-    const valuePicks = [...sold].sort((a, b) => (a.soldPrice || 0) - a.basePrice - ((b.soldPrice || 0) - b.basePrice)).slice(0, 3);
+    const priciest = [...sold].sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0)).slice(0, 4);
+    const valuePicks = [...sold]
+      .filter((p) => p.soldPrice != null)
+      .sort((a, b) => ((a.soldPrice || 0) - a.basePrice) - ((b.soldPrice || 0) - b.basePrice))
+      .slice(0, 4);
 
     const roleSpend = new Map<string, { count: number; spend: number }>();
     sold.forEach((p) => {
@@ -30,86 +33,142 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({ teams, players }
   }, [players]);
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-3xl p-6 shadow-2xl">
-      <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2">
-        <BarChart3 className="text-amber-400" size={22} /> Auction Intelligence &amp; Analytics
-      </h2>
+    <div className="bg-[#111827] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-6 sm:p-8 shadow-2xl">
+      <div className="flex flex-wrap items-center justify-between pb-4 mb-6 border-b border-[rgba(242,241,237,0.08)] gap-2">
+        <div>
+          <h2 className="font-display font-semibold text-2xl text-[#f2f1ed] flex items-center gap-2.5">
+            <BarChart3 className="text-sky-400" size={22} /> Auction Intelligence &amp; Analytics
+          </h2>
+          <p className="text-xs text-[#8c8a82] mt-1">
+            Real-time financial telemetry, role-wise allocation, and valuation spreads.
+          </p>
+        </div>
+        <div className="px-3 py-1 rounded-lg bg-[#0b0a09] border border-[rgba(242,241,237,0.08)] text-xs font-mono font-bold text-sky-400">
+          Telemetry Active
+        </div>
+      </div>
 
-      {/* OVERVIEW STAT CARDS */}
+      {/* OVERVIEW STAT CARDS (8-point rhythm: gap-4, mb-8) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Stat label="Total Spend" value={`${stats.totalSpend} L`} icon={<DollarSign size={18} className="text-emerald-400" />} />
-        <Stat label="Players Sold" value={String(stats.sold.length)} icon={<Award size={18} className="text-amber-400" />} />
-        <Stat label="Unsold" value={String(stats.unsold.length)} icon={<Flame size={18} className="text-rose-400" />} />
-        <Stat label="Remaining in Pool" value={String(stats.available.length)} icon={<PieChart size={18} className="text-teal-400" />} />
+        <Stat
+          label="Total Purse Spent"
+          value={`${stats.totalSpend} L`}
+          subtext="Cumulative across teams"
+          icon={<DollarSign size={20} className="text-emerald-400" />}
+        />
+        <Stat
+          label="Players Acquired"
+          value={`${stats.sold.length}`}
+          subtext={`Out of ${players.length} registered`}
+          icon={<Award size={20} className="text-sky-400" />}
+        />
+        <Stat
+          label="Average Deal Price"
+          value={stats.sold.length ? `${Math.round(stats.totalSpend / stats.sold.length)} L` : '0 L'}
+          subtext="Mean valuation per sold lot"
+          icon={<TrendingUp size={20} className="text-amber-400" />}
+        />
+        <Stat
+          label="Unsold Inventory"
+          value={`${stats.unsold.length}`}
+          subtext={`${stats.available.length} awaiting call`}
+          icon={<PieChart size={20} className="text-rose-400" />}
+        />
       </div>
 
-      {/* HIGHEST BUYS & VALUE PICKS */}
+      {/* PRICIEST & VALUE PICKS (8-point rhythm: gap-6) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-slate-950/60 border border-[rgba(255,255,255,0.05)] rounded-2xl p-5">
-          <h3 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-1.5">
-            <TrendingUp size={14} /> Highest Value Acquisitions
-          </h3>
-          {stats.priciest.length === 0 && <div className="text-slate-500 text-xs italic">No sales recorded yet.</div>}
-          <ul className="space-y-2">
-            {stats.priciest.map((p) => (
-              <li key={p.id} className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-200">{p.name}</span>
-                <span className="font-mono font-bold text-emerald-400">{p.soldPrice} L</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-slate-950/60 border border-[rgba(255,255,255,0.05)] rounded-2xl p-5">
-          <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400 mb-3 flex items-center gap-1.5">
-            <Award size={14} /> Best Value Steals (Closest to Base)
-          </h3>
-          {stats.valuePicks.length === 0 && <div className="text-slate-500 text-xs italic">No sales recorded yet.</div>}
-          <ul className="space-y-2">
-            {stats.valuePicks.map((p) => (
-              <li key={p.id} className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-200">{p.name}</span>
-                <span className="font-mono font-bold text-emerald-400">
-                  {p.soldPrice} L <span className="text-[10px] text-slate-400">(base {p.basePrice} L)</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* SPEND BY ROLE */}
-      <div className="mb-8">
-        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">Spend Distribution by Role</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[...stats.roleSpend.entries()].map(([role, v]) => (
-            <div key={role} className="bg-slate-950/60 border border-[rgba(255,255,255,0.05)] rounded-2xl p-3.5 text-center">
-              <div className="text-[10px] text-slate-400 uppercase font-bold">{role}</div>
-              <div className="text-lg font-black font-mono text-emerald-400">{v.spend} L</div>
-              <div className="text-[10px] text-slate-500 font-semibold">{v.count} players</div>
-            </div>
-          ))}
-          {stats.roleSpend.size === 0 && <div className="text-slate-500 text-xs italic col-span-full">No sales recorded yet.</div>}
-        </div>
-      </div>
-
-      {/* TEAM PURSE UTILIZATION BARS */}
-      <div>
-        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">Team Purse Utilization</h3>
-        <div className="space-y-3">
-          {teams.map((t) => {
-            const used = t.originalPurse - t.purse;
-            const pct = t.originalPurse > 0 ? Math.min(100, Math.round((used / t.originalPurse) * 100)) : 0;
-            return (
-              <div key={t.id} className="bg-slate-950/60 border border-[rgba(255,255,255,0.05)] rounded-xl p-3">
-                <div className="flex justify-between text-xs text-slate-300 font-bold mb-1.5">
-                  <span>{t.name}</span>
-                  <span className="font-mono text-emerald-400">
-                    {used} / {t.originalPurse} L ({pct}%)
-                  </span>
+        {/* Highest Signings */}
+        <div className="bg-[#0b0a09] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-6 shadow-lg">
+          <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[rgba(242,241,237,0.08)]">
+            <Flame size={16} className="text-amber-400" />
+            <h3 className="font-display font-semibold text-sm text-[#f2f1ed]">Marquee Deals (Top Valuations)</h3>
+          </div>
+          <div className="space-y-2">
+            {stats.priciest.map((p) => {
+              const team = teams.find((t) => t.id === p.teamId || t.players.some((pl) => pl.id === p.id));
+              return (
+                <div
+                  key={p.id}
+                  className="flex justify-between items-center p-3 rounded-xl bg-[#111827] border border-[rgba(242,241,237,0.08)] text-xs"
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="font-bold text-[#f2f1ed] truncate">{p.name}</div>
+                    <div className="text-[10px] text-[#8c8a82]">
+                      {p.role} · <span className="text-sky-300 font-semibold">{team?.name || 'Unknown'}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="font-mono text-sm font-black text-amber-400 tabular-nums">
+                      {p.soldPrice} L
+                    </span>
+                  </div>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-500" style={{ width: `${pct}%` }} />
+              );
+            })}
+            {stats.priciest.length === 0 && (
+              <div className="text-center text-xs text-[#8c8a82] py-8">No signed players yet.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Tactical Value Picks */}
+        <div className="bg-[#0b0a09] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-6 shadow-lg">
+          <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[rgba(242,241,237,0.08)]">
+            <Award size={16} className="text-[#c2a365]" />
+            <h3 className="font-display font-semibold text-sm text-[#f2f1ed]">Tactical Value Deals</h3>
+          </div>
+          <div className="space-y-2">
+            {stats.valuePicks.map((p) => {
+              const team = teams.find((t) => t.id === p.teamId || t.players.some((pl) => pl.id === p.id));
+              const premium = (p.soldPrice || 0) - p.basePrice;
+              return (
+                <div
+                  key={p.id}
+                  className="flex justify-between items-center p-3 rounded-xl bg-[#111827] border border-[rgba(242,241,237,0.08)] text-xs"
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="font-bold text-[#f2f1ed] truncate">{p.name}</div>
+                    <div className="text-[10px] text-[#8c8a82]">
+                      {p.role} · <span className="text-sky-300 font-semibold">{team?.name || 'Unknown'}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono text-xs font-bold text-sky-400 tabular-nums">{p.soldPrice} L</div>
+                    <div className="text-[10px] text-[#8c8a82] font-mono">+{premium}L over base</div>
+                  </div>
+                </div>
+              );
+            })}
+            {stats.valuePicks.length === 0 && (
+              <div className="text-center text-xs text-[#8c8a82] py-8">No deals finalized yet.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ROLE ALLOCATION BREAKDOWN */}
+      <div className="bg-[#0b0a09] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[rgba(242,241,237,0.08)]">
+          <PieChart size={16} className="text-sky-400" />
+          <h3 className="font-display font-semibold text-sm text-[#f2f1ed]">Capital Allocation by Role</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper'].map((role) => {
+            const data = stats.roleSpend.get(role) || { count: 0, spend: 0 };
+            const percent = stats.totalSpend > 0 ? Math.round((data.spend / stats.totalSpend) * 100) : 0;
+            return (
+              <div key={role} className="p-4 rounded-xl bg-[#111827] border border-[rgba(242,241,237,0.08)] flex flex-col justify-between">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-[#f2f1ed]">{role}</span>
+                  <span className="font-mono text-xs font-bold text-sky-400 tabular-nums">{percent}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-[#0b0a09] rounded-full overflow-hidden border border-[rgba(242,241,237,0.08)] mb-2">
+                  <div className="h-full bg-sky-500 rounded-full transition-all" style={{ width: `${percent}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-[#8c8a82]">
+                  <span>{data.count} players</span>
+                  <span className="font-mono font-semibold">{data.spend} L</span>
                 </div>
               </div>
             );
@@ -120,10 +179,22 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({ teams, players }
   );
 };
 
-const Stat: React.FC<{ label: string; value: string; icon: React.ReactNode }> = ({ label, value, icon }) => (
-  <div className="bg-slate-950/60 border border-[rgba(255,255,255,0.05)] rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-    <div className="mb-1">{icon}</div>
-    <div className="text-2xl font-black font-mono text-white mb-0.5">{value}</div>
-    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{label}</div>
+const Stat: React.FC<{ label: string; value: string; subtext: string; icon: React.ReactNode }> = ({
+  label,
+  value,
+  subtext,
+  icon,
+}) => (
+  <div className="bg-[#0b0a09] border border-[rgba(242,241,237,0.08)] rounded-[16px] p-5 flex flex-col justify-between shadow-sm">
+    <div className="flex justify-between items-start mb-2">
+      <span className="text-xs font-semibold text-[#8c8a82] uppercase tracking-wider">{label}</span>
+      <div className="p-1.5 rounded-lg bg-[#111827] border border-[rgba(242,241,237,0.08)]">{icon}</div>
+    </div>
+    <div>
+      <div className="text-2xl sm:text-3xl font-black font-mono text-[#f2f1ed] tracking-tight tabular-nums mb-1">
+        {value}
+      </div>
+      <div className="text-[11px] text-[#8c8a82]">{subtext}</div>
+    </div>
   </div>
 );

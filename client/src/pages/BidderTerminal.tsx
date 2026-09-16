@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuction, Role } from '../hooks/useAuction';
 import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { PitchRoster } from '../components/PitchRoster';
+import { FeaturedPlayerCard } from '../components/FeaturedPlayerCard';
 import { TinderCardStack } from '../components/TinderCardStack';
-import { FloatingReactions } from '../components/FloatingReactions';
+import { AppShell } from '../components/AppShell';
 import { AudioEngine } from '../components/AudioEngine';
-import { AIAuctioneer } from '../components/AIAuctioneer';
-import { Volume2, VolumeX, Shield, DollarSign, Users, Award, Flame, Sparkles, PieChart, RefreshCw } from 'lucide-react';
+import { Toast, ToastMessage } from '../components/ui/Toast';
+import { WinCelebrationOverlay } from '../components/ui/WinCelebrationOverlay';
+import {
+  DollarSign,
+  Users,
+  Award,
+  Flame,
+  Zap,
+  Crown,
+  Smile,
+  PieChart,
+  Shield,
+  Clock,
+  RefreshCw,
+  ExternalLink,
+  ChevronRight,
+  TrendingUp,
+  Check,
+  AlertCircle,
+  Layers,
+  LayoutGrid,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UrgencyCountdownTimer } from '../components/animations/UrgencyCountdownTimer';
 
 interface BidderTerminalProps {
   roomId: string;
@@ -18,378 +40,473 @@ interface BidderTerminalProps {
 
 export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, role, teamId }) => {
   const auction = useAuction({ roomId, token, role, teamId });
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'squad' | 'pitch' | 'budget'>('squad');
-  const [budgetNotes, setBudgetNotes] = useState('');
+  const [activeTab, setActiveTab] = useState<'squad' | 'pitch' | 'notes'>('squad');
+  const [viewMode, setViewMode] = useState<'tactical' | 'deck'>('tactical');
+
+  // Server-authoritative idempotent Win Celebration state
+  const lastCelebratedLotIdRef = useRef<string | null>(null);
+  const [winCelebration, setWinCelebration] = useState<{
+    isOpen: boolean;
+    playerName?: string;
+    teamName?: string;
+    amount?: number;
+  } | null>(null);
+
+  // Outbid transient alert state
+  const previousLeaderIdRef = useRef<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  // Strategy notes backed by localStorage
+  const storageKey = `bidder_notes_${roomId}_${teamId || 'anon'}`;
+  const [budgetNotes, setBudgetNotes] = useState(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem(storageKey) || '' : '';
+  });
+
+  const handleNotesChange = (val: string) => {
+    setBudgetNotes(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(storageKey, val);
+    }
+  };
 
   const team = auction.teams.find((t) => t.id === teamId);
 
+  // Idempotent server-authoritative win celebration check
+  useEffect(() => {
+    if (!auction.biddingLog || auction.biddingLog.length === 0) return;
+    const lastEntry = auction.biddingLog[auction.biddingLog.length - 1];
+    if (
+      lastEntry &&
+      (lastEntry.type === 'sold' || lastEntry.type === 'rtm') &&
+      lastEntry.teamId === teamId &&
+      lastCelebratedLotIdRef.current !== lastEntry.id
+    ) {
+      lastCelebratedLotIdRef.current = lastEntry.id;
+      setWinCelebration({
+        isOpen: true,
+        playerName: lastEntry.playerName,
+        teamName: lastEntry.teamName,
+        amount: lastEntry.amount,
+      });
+    }
+  }, [auction.biddingLog, teamId]);
+
+  // Outbid transient notification check
+  useEffect(() => {
+    if (
+      previousLeaderIdRef.current === teamId &&
+      auction.highestBidder &&
+      auction.highestBidder !== teamId &&
+      auction.activePlayer
+    ) {
+      const outbidTeam = auction.teams.find((t) => t.id === auction.highestBidder);
+      setToast({
+        id: Math.random().toString(),
+        type: 'warning',
+        message: `Outbid: ${outbidTeam ? outbidTeam.name : 'Another franchise'} placed bid for ${auction.currentBid} Lakhs`,
+      });
+      try {
+        AudioEngine.playTimerTick();
+      } catch {}
+    }
+    previousLeaderIdRef.current = auction.highestBidder;
+  }, [auction.highestBidder, auction.currentBid, auction.activePlayer, teamId, auction.teams]);
+
+  // Missing Link Guard
   if (!teamId || !token) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-slate-950 text-slate-100">
-        <Shield size={64} className="text-rose-500 mb-4 animate-bounce" />
-        <h2 className="text-3xl font-bold text-rose-500 mb-2">Missing Team Link</h2>
-        <p className="text-slate-400 max-w-md">
-          This looks like an incomplete or broken team link. Please ask the auction organizer to send your private team access link.
+      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-[var(--bg-base)] text-[var(--text-primary)]">
+        <div className="w-16 h-16 rounded-[16px] bg-[#ef4444]/15 border border-[#ef4444]/40 flex items-center justify-center text-[#ef4444] mb-4 shadow-xl">
+          <Shield size={36} />
+        </div>
+        <h2 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-2">Invalid or Missing Team Access Link</h2>
+        <p className="text-sm text-[var(--text-secondary)] max-w-md leading-relaxed">
+          This URL appears to be incomplete. Please contact the tournament auctioneer to obtain your private team franchise link.
         </p>
       </div>
     );
   }
 
-  if (auction.connectionStatus === 'connecting' && !team) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-400 gap-3">
-        <RefreshCw size={32} className="animate-spin text-amber-400" />
-        <span className="text-sm font-semibold tracking-wider uppercase">Connecting to Auction Arena...</span>
-      </div>
-    );
-  }
-
-  if (!audioEnabled) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-slate-950 text-slate-100 gap-6">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md w-full p-8 rounded-3xl bg-slate-900/80 backdrop-blur-2xl border border-[rgba(255,255,255,0.1)] shadow-2xl flex flex-col items-center"
-        >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-emerald-500 p-0.5 mb-6 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400">
-              <Sparkles size={40} />
-            </div>
-          </div>
-          <h2 className="text-3xl font-black text-white mb-2">{team?.name || 'Team Terminal'}</h2>
-          <p className="text-sm text-slate-400 mb-6">
-            Swipeable Tinder-style player cards, instant haptic bidding, dynamic pitch map, and live AI voice auctioneer.
-          </p>
-
-          <button
-            className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-gradient-to-r from-amber-500 via-emerald-500 to-teal-500 hover:from-amber-400 hover:to-teal-400 text-slate-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-            onClick={() => {
-              AudioEngine.init();
-              AIAuctioneer.init();
-              setAudioEnabled(true);
-            }}
-          >
-            <Volume2 size={18} /> Enter Live Auction Deck
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // All auction-math (effective bid, highest bidder, purse %, next legal
-  // increment) comes from one place now - see useAuctionDerived.ts for why.
+  // All auction arithmetic comes from computeAuctionDerived / useAuctionDerived
   const derived = useAuctionDerived(auction, teamId);
   const currentVal = derived.effectiveBid;
   const highestBidderTeam = derived.highestBidderTeam;
   const isHighestBidder = derived.isHighestBidder;
   const purse = derived.purse ?? 0;
-  const nextIncrement = derived.nextIncrement;
   const nextBidAmount = derived.nextBidAmount;
   const canAfford = derived.canAfford ?? false;
   const isBidDisabled = derived.isBidDisabled ?? true;
   const spent = (derived.originalPurse ?? purse) - purse;
   const spentPercent = derived.spentPercent ?? 0;
 
-  // Upcoming players queue for Tinder card stack
-  const upcomingPlayers = auction.players.filter((p) => p.status === 'available' && p.id !== auction.activePlayer?.id);
+  const handlePlaceBid = (amount?: number) => {
+    AudioEngine.init();
+    AudioEngine.playBidSound();
+    auction.placeBid(amount);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden relative font-sans">
-      {/* Floating Emoji Reactions Layer */}
-      <FloatingReactions reactions={auction.reactionEmojiList} />
-
-      {/* Server-rejected action banner. The bid/increment math above is a
-          client-side preview, not a guarantee - this is what tells a
-          bidder why a tap silently did nothing (stale price, purse just
-          ran out to another bid, etc). */}
-      <AnimatePresence>
-        {auction.lastError && (
-          <motion.div
-            key={auction.lastError.id}
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] px-4 py-3 rounded-2xl bg-rose-950/95 border border-rose-500/40 text-rose-100 text-sm font-semibold shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3"
-          >
-            <span>{auction.lastError.message}</span>
-            <button
-              onClick={() => auction.clearError()}
-              className="shrink-0 text-rose-300 hover:text-white text-xs font-bold uppercase tracking-wider"
-            >
-              Dismiss
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* TOP NAVBAR / TEAM PURSE STATUS */}
-      <header className="p-4 bg-slate-900/90 backdrop-blur-xl border-b border-[rgba(255,255,255,0.08)] z-20">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <AppShell
+      name={auction.name}
+      roomId={roomId}
+      status={auction.status}
+      connectionStatus={auction.connectionStatus}
+      role={role}
+      teamCode={team?.code}
+      teamName={team?.name}
+      lastError={auction.lastError}
+      clearError={auction.clearError}
+      reactionEmojiList={auction.reactionEmojiList}
+    >
+      <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto p-4 sm:p-6 gap-4">
+        {/* TOP PURSE TELEMETRY BAR (ALWAYS VISIBLE ABOVE THE FOLD) */}
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
+          {/* Franchise Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-emerald-500 p-0.5 shadow-md">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-amber-400 text-sm">
-                {team?.code || 'TM'}
-              </div>
+            <div className="w-12 h-12 rounded-[12px] bg-[var(--bg-base)] border border-[#c2a365]/40 flex items-center justify-center font-mono font-black text-[#c2a365] text-lg shadow-inner">
+              {team?.code || 'TM'}
             </div>
             <div>
-              <h1 className="text-lg font-black text-white leading-tight">{team?.name}</h1>
-              <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-widest">
-                Team Bidder Terminal
-              </span>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-display font-bold text-[var(--text-primary)]">{team?.name}</h1>
+                <span className="px-2 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/30 font-mono">
+                  Cap: {derived.originalPurse} L
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] font-medium">
+                Signed: <strong className="text-[var(--text-primary)]">{team?.players.length ?? 0} Players</strong> · Total Spent:{' '}
+                <span className="font-mono text-[#c2a365] font-bold tabular-nums">{spent} L</span>
+              </p>
             </div>
           </div>
 
-          {/* PURSE BALANCE & PROGRESS GAUGE */}
+          {/* Runway Gauge & Remaining Purse Balance */}
           <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Purse</div>
-              <div className="text-2xl font-black font-mono text-emerald-400 flex items-center justify-end gap-1">
-                <DollarSign size={18} className="text-emerald-400" />
-                {purse} L
+            <div className="w-36 hidden sm:block">
+              <div className="flex justify-between text-[11px] font-semibold text-[var(--text-secondary)] mb-1">
+                <span>Budget Spent</span>
+                <span className="font-mono tabular-nums">{spentPercent.toFixed(0)}%</span>
               </div>
-            </div>
-
-            {/* Purse Progress Bar */}
-            <div className="hidden sm:block w-32">
-              <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-semibold">
-                <span>Spent</span>
-                <span>{spentPercent.toFixed(0)}%</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden p-0.5 border border-slate-700">
+              <div className="w-full h-2 rounded-full bg-[var(--bg-base)] overflow-hidden border border-[var(--border-subtle)]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-[#10b981] via-[#c2a365] to-[#ef4444] transition-all duration-300"
                   style={{ width: `${spentPercent}%` }}
                 />
               </div>
             </div>
 
-            {/* Sound Toggle */}
-            <button
-              onClick={() => {
-                AIAuctioneer.toggle();
-              }}
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors"
-              title="Toggle AI Auctioneer Voice"
-            >
-              <Volume2 size={18} />
-            </button>
+            <div className="text-right">
+              <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Remaining Purse</span>
+              <div className="text-3xl font-black font-mono text-[#38bdf8] tracking-tight tabular-nums drop-shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+                {purse} <span className="text-sm font-sans font-bold text-[var(--text-secondary)]">L</span>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* MAIN CONTENT GRID */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto z-10">
-        {/* LEFT / CENTER: TINDER PLAYER CARD STACK & BIDDING CONTROLS (8 Cols) */}
-        <section className="lg:col-span-7 flex flex-col justify-between gap-6">
-          {/* TINDER CARD STACK */}
-          <div className="flex-1 flex items-center justify-center min-h-[420px]">
-            <TinderCardStack
-              activePlayer={auction.activePlayer}
-              upcomingPlayers={upcomingPlayers}
-              currentBid={currentVal}
-              highestBidderTeam={highestBidderTeam}
-              onBid={() => auction.placeBid(nextBidAmount)}
-              onPass={() => {}}
-              onReaction={(emoji) => auction.sendReaction(emoji)}
-              isBidDisabled={isBidDisabled}
-              disabledReason={
-                isHighestBidder
-                  ? 'You hold highest bid!'
-                  : !canAfford
-                  ? 'Insufficient purse balance'
-                  : 'Waiting for player'
-              }
-            />
-          </div>
-
-          {/* INSTANT BIDDING DASHBOARD */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 shadow-2xl">
-            {/* MAIN INSTANT BID BUTTON */}
-            <motion.button
-              whileHover={{ scale: isBidDisabled ? 1 : 1.02 }}
-              whileTap={{ scale: isBidDisabled ? 1 : 0.96 }}
-              disabled={isBidDisabled}
-              onClick={() => {
-                if (!isBidDisabled) {
-                  AudioEngine.playBidSound();
-                  auction.placeBid(nextBidAmount);
-                }
-              }}
-              className={`w-full py-5 rounded-2xl font-black text-xl uppercase tracking-widest shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden ${
-                isHighestBidder
-                  ? 'bg-slate-800 text-emerald-400 border border-emerald-500/40 cursor-not-allowed'
-                  : isBidDisabled
-                  ? 'bg-slate-800/60 text-slate-500 border border-slate-700 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 text-slate-950 shadow-[0_0_35px_rgba(16,185,129,0.4)] hover:shadow-[0_0_50px_rgba(16,185,129,0.6)]'
-              }`}
-            >
-              {isHighestBidder ? (
-                <>
-                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-                  You Hold Highest Bid ({currentVal} L)
-                </>
-              ) : !canAfford ? (
-                'Purse Limit Reached'
-              ) : auction.activePlayer ? (
-                <>
-                  <Sparkles size={24} />
-                  PLACE BID — {nextBidAmount} Lakhs
-                </>
-              ) : (
-                'Waiting for Next Player...'
-              )}
-            </motion.button>
-
-            {/* QUICK INCREMENT PILLS */}
-            <div className="grid grid-cols-4 gap-2.5 mt-3">
-              {[5, 10, 25, 50].map((inc) => {
-                const targetBid = currentVal + inc;
-                const isDisabled = isBidDisabled || purse < targetBid;
-                return (
-                  <button
-                    key={inc}
-                    disabled={isDisabled}
-                    onClick={() => {
-                      if (!isDisabled) {
-                        AudioEngine.playBidSound();
-                        auction.placeBid(targetBid);
-                      }
-                    }}
-                    className={`py-2.5 rounded-xl font-bold text-xs transition-all duration-200 border ${
-                      isDisabled
-                        ? 'bg-slate-950/40 text-slate-600 border-slate-800 cursor-not-allowed'
-                        : 'bg-slate-800/90 text-amber-300 border-amber-500/30 hover:border-amber-400 hover:bg-slate-800 hover:scale-105 active:scale-95 shadow-sm'
-                    }`}
-                  >
-                    +{inc}L ({targetBid}L)
-                  </button>
-                );
-              })}
+        {/* MAIN TACTICAL GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 items-start">
+          {/* CENTER STAGE: LIVE BIDDING COCKPIT (7 Cols) */}
+          <div className="lg:col-span-7 flex flex-col gap-4">
+            {/* View Mode Toggle Header (Tactical vs Optional Deck Mode) */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-[var(--text-secondary)]">
+                {viewMode === 'tactical' ? 'Tactical Cockpit' : 'Card Deck View (Preview Mode)'}
+              </span>
+              <div className="flex bg-[var(--bg-surface)] p-0.5 rounded-[8px] border border-[var(--border-subtle)] text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('tactical')}
+                  className={`px-2.5 py-1 rounded-[6px] transition-colors flex items-center gap-1 ${
+                    viewMode === 'tactical'
+                      ? 'bg-[#c2a365] text-[#0b0a09]'
+                      : 'text-[var(--text-secondary)] hover:text-white'
+                  }`}
+                >
+                  <LayoutGrid size={12} />
+                  <span>Tactical</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('deck')}
+                  className={`px-2.5 py-1 rounded-[6px] transition-colors flex items-center gap-1 ${
+                    viewMode === 'deck'
+                      ? 'bg-[#c2a365] text-[#0b0a09]'
+                      : 'text-[var(--text-secondary)] hover:text-white'
+                  }`}
+                >
+                  <Layers size={12} />
+                  <span>Deck View</span>
+                </button>
+              </div>
             </div>
 
-            {/* FLOATING REACTION BAR */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
-              <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                <Flame size={14} className="text-amber-400" /> Send Live Reaction:
-              </span>
-              <div className="flex gap-2">
-                {['🔥', '💰', '😱', '⚡️', '👑'].map((emoji) => (
-                  <motion.button
-                    key={emoji}
-                    whileHover={{ scale: 1.2, rotate: 8 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => {
-                      AudioEngine.playCheerSound();
-                      auction.sendReaction(emoji);
-                    }}
-                    className="w-10 h-10 rounded-xl bg-slate-800/90 border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-lg hover:bg-slate-700 transition-colors shadow-md"
-                  >
-                    {emoji}
-                  </motion.button>
-                ))}
+            {/* Active Player Hero on the Block / Deck View */}
+            {auction.activePlayer ? (
+              viewMode === 'deck' ? (
+                <TinderCardStack
+                  activePlayer={auction.activePlayer}
+                  upcomingPlayers={auction.players.filter((p) => p.status === 'available' && p.id !== auction.activePlayer?.id)}
+                  currentBid={currentVal}
+                  highestBidderTeam={highestBidderTeam}
+                  onBid={() => handlePlaceBid(nextBidAmount)}
+                  isBidDisabled={isBidDisabled}
+                  disabledReason={!canAfford ? 'Purse Limit Reached' : undefined}
+                />
+              ) : (
+                <FeaturedPlayerCard player={auction.activePlayer} size="large" />
+              )
+            ) : (
+              <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-8 text-center flex flex-col items-center justify-center text-[var(--text-secondary)] shadow-lg min-h-[220px]">
+                <Clock size={36} className="mb-2 text-[var(--text-tertiary)] animate-pulse" />
+                <h3 className="text-base font-display font-bold text-[var(--text-primary)] mb-1">Waiting for Next Player</h3>
+                <p className="text-xs text-[var(--text-secondary)] max-w-sm leading-relaxed">
+                  The auctioneer will bring the next player to the block shortly. Check your squad balance on the right.
+                </p>
+              </div>
+            )}
+
+            {/* LIVE BID STATUS & THUMB BID TRIGGER */}
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-6 shadow-xl flex flex-col gap-4">
+              {/* Bid & Leader Status Header */}
+              <div className="flex justify-between items-center pb-3 border-b border-[var(--border-subtle)]">
+                <div>
+                  <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Active Bid</span>
+                  <div className="text-2xl font-black font-mono text-[var(--text-primary)] tabular-nums">
+                    {currentVal} <span className="text-sm font-sans font-normal text-[var(--text-secondary)]">Lakhs</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Leading Franchise</span>
+                  {highestBidderTeam ? (
+                    <span className="font-bold text-sm text-[#c2a365] flex items-center justify-end gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse-subtle" />
+                      <span className="text-[9px] font-mono font-bold text-[#10b981] uppercase bg-[#10b981]/15 px-1 py-0.5 rounded-[4px]">LIVE</span>
+                      <span>{highestBidderTeam.name} ({highestBidderTeam.code})</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[var(--text-tertiary)] italic">No bids yet</span>
+                  )}
+                </div>
+              </div>
+
+              {/* URGENCY COUNTDOWN TIMER (compact, for bidder situational awareness) */}
+              {auction.activePlayer && (
+                <div className="flex justify-center py-1">
+                  <UrgencyCountdownTimer
+                    seconds={auction.timer}
+                    maxSeconds={15}
+                    isActive={auction.timerActive}
+                    size="normal"
+                  />
+                </div>
+              )}
+
+              {/* MASSIVE TACTILE ONE-TAP BID BUTTON (>= 56px height) */}
+              <button
+                disabled={isBidDisabled || auction.connectionStatus !== 'connected'}
+                onClick={() => handlePlaceBid(nextBidAmount)}
+                className={`w-full min-h-[56px] py-4 sm:py-5 px-6 rounded-[16px] font-black text-base sm:text-lg uppercase tracking-wider shadow-xl transition-all duration-200 flex items-center justify-center gap-2.5 active:scale-[0.98] focus-ring ${
+                  isHighestBidder
+                    ? 'bg-[var(--bg-elevated)] text-[#10b981] border border-[#10b981]/40 cursor-not-allowed'
+                    : !canAfford
+                    ? 'bg-[var(--bg-elevated)] text-[#ef4444] border border-[#ef4444]/30 cursor-not-allowed'
+                    : isBidDisabled
+                    ? 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] cursor-not-allowed'
+                    : 'bg-[#38bdf8] hover:bg-[#0284c7] text-[#0b0a09] shadow-[0_0_30px_rgba(56,189,248,0.35)]'
+                }`}
+              >
+                {isHighestBidder ? (
+                  <>
+                    <Check size={20} className="text-[#10b981] shrink-0" />
+                    <span>You Hold Highest Bid ({currentVal} L)</span>
+                  </>
+                ) : !canAfford ? (
+                  <>
+                    <AlertCircle size={20} className="text-[#ef4444] shrink-0" />
+                    <span>Purse Limit Reached (Need {nextBidAmount}L)</span>
+                  </>
+                ) : auction.activePlayer ? (
+                  <>
+                    <Zap size={20} className="shrink-0 text-[#0b0a09]" />
+                    <span>PLACE BID — {nextBidAmount} Lakhs</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock size={18} className="shrink-0" />
+                    <span>Waiting for Active Player...</span>
+                  </>
+                )}
+              </button>
+
+              {/* QUICK INCREMENT BUTTON PILLS */}
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] mb-2 block">
+                  Tactical Increments
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[5, 10, 25, 50].map((inc) => {
+                    const targetBid = currentVal + inc;
+                    const isDisabled = isBidDisabled || purse < targetBid || auction.connectionStatus !== 'connected';
+                    return (
+                      <button
+                        key={inc}
+                        disabled={isDisabled}
+                        onClick={() => handlePlaceBid(targetBid)}
+                        className={`py-2.5 px-1.5 rounded-[12px] text-xs font-bold transition-all border flex flex-col items-center justify-center focus-ring ${
+                          isDisabled
+                            ? 'bg-[var(--bg-base)]/40 text-[var(--text-tertiary)] border-[var(--border-subtle)]/40 cursor-not-allowed'
+                            : 'bg-[var(--bg-base)] text-[#c2a365] border-[var(--border-subtle)] hover:border-[#38bdf8]/50 hover:bg-[var(--bg-elevated)] active:scale-95'
+                        }`}
+                      >
+                        <span className="font-bold">+{inc}L</span>
+                        <span className="text-[10px] font-mono text-[var(--text-secondary)] tabular-nums">({targetBid}L)</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* LIVE REACTION BUTTONS BAR (Clean SVG Icons) */}
+              <div className="flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]">
+                <span className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+                  <Flame size={14} className="text-[#c2a365]" /> Reaction:
+                </span>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'flame', emoji: '🔥', label: 'Fire', Icon: Flame, color: 'text-amber-400' },
+                    { id: 'money', emoji: '💰', label: 'Value', Icon: DollarSign, color: 'text-emerald-400' },
+                    { id: 'shock', emoji: '😱', label: 'Shock', Icon: AlertCircle, color: 'text-rose-400' },
+                    { id: 'zap', emoji: '⚡️', label: 'Surge', Icon: Zap, color: 'text-sky-400' },
+                    { id: 'crown', emoji: '👑', label: 'Champion', Icon: Crown, color: 'text-amber-300' },
+                  ].map(({ id, emoji, label, Icon, color }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      title={label}
+                      onClick={() => {
+                        AudioEngine.init();
+                        AudioEngine.playCheerSound();
+                        auction.sendReaction(emoji);
+                      }}
+                      className="w-9 h-9 rounded-[10px] bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[#c2a365]/40 hover:bg-[var(--bg-elevated)] flex items-center justify-center transition-transform active:scale-90 focus-ring"
+                    >
+                      <Icon size={16} className={color} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* RIGHT: TABBED SQUAD ROSTER, PITCH MAP & BUDGET PLANNER (5 Cols) */}
-        <section className="lg:col-span-5 flex flex-col gap-4">
-          {/* TAB SELECTION HEADER */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-2xl p-1.5 flex gap-1">
-            <button
-              onClick={() => setSidebarTab('squad')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'squad'
-                  ? 'bg-amber-500 text-slate-950 shadow-lg font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <Users size={14} /> Squad ({team?.players.length ?? 0})
-            </button>
-            <button
-              onClick={() => setSidebarTab('pitch')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'pitch'
-                  ? 'bg-amber-500 text-slate-950 shadow-lg font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <Award size={14} /> Tactical Pitch Map
-            </button>
-            <button
-              onClick={() => setSidebarTab('budget')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'budget'
-                  ? 'bg-amber-500 text-slate-950 shadow-lg font-black'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <PieChart size={14} /> Budget Planner
-            </button>
-          </div>
+          {/* RIGHT PANE: SQUAD ROSTER, PITCH MAP & STRATEGY NOTES (5 Cols) */}
+          <div className="lg:col-span-5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-4 shadow-xl flex flex-col h-[640px]">
+            {/* TABS HEADER */}
+            <div className="flex bg-[var(--bg-base)] rounded-[12px] p-1 border border-[var(--border-subtle)] mb-3 gap-1">
+              <button
+                onClick={() => setActiveTab('squad')}
+                className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                  activeTab === 'squad'
+                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    : 'text-[var(--text-secondary)] hover:text-white'
+                }`}
+              >
+                <Users size={13} /> Squad ({team?.players.length ?? 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('pitch')}
+                className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                  activeTab === 'pitch'
+                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    : 'text-[var(--text-secondary)] hover:text-white'
+                }`}
+              >
+                <Award size={13} /> Pitch Map
+              </button>
+              <button
+                onClick={() => setActiveTab('notes')}
+                className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                  activeTab === 'notes'
+                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    : 'text-[var(--text-secondary)] hover:text-white'
+                }`}
+              >
+                <PieChart size={13} /> Strategy Notes
+              </button>
+            </div>
 
-          {/* TAB CONTENT CONTAINER */}
-          <div className="flex-1 min-h-[460px] bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 shadow-2xl overflow-hidden flex flex-col">
-            {sidebarTab === 'squad' && (
-              <div className="flex-1 flex flex-col overflow-y-auto">
-                <div className="flex justify-between items-center mb-3 pb-2 border-b border-[rgba(255,255,255,0.08)]">
-                  <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Signed Players</span>
-                  <span className="text-xs font-mono font-bold text-emerald-400">
-                    Total Spent: {spent} L
-                  </span>
+            {/* TAB 1: SQUAD ROSTER */}
+            {activeTab === 'squad' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex justify-between items-center pb-2 mb-2 border-b border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)]">
+                  <span>Signed Player</span>
+                  <span>Acquired Price</span>
                 </div>
 
-                {team?.players && team.players.length > 0 ? (
-                  <ul className="space-y-2.5 flex-1">
-                    {team.players.map((p) => (
-                      <motion.li
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  {team?.players && team.players.length > 0 ? (
+                    team.players.map((p) => (
+                      <div
                         key={p.id}
-                        className="p-3 rounded-xl bg-slate-950/60 border border-[rgba(255,255,255,0.05)] flex items-center justify-between hover:border-amber-500/30 transition-colors"
+                        className="p-3 rounded-[12px] bg-[var(--bg-base)] border border-[var(--border-subtle)] flex items-center justify-between text-xs"
                       >
                         <div>
-                          <div className="text-sm font-bold text-slate-100">{p.name}</div>
-                          <div className="text-[10px] text-slate-400 font-medium">{p.role}</div>
+                          <div className="font-bold text-[var(--text-primary)]">{p.name}</div>
+                          <div className="text-[10px] text-[var(--text-secondary)]">{p.role}</div>
                         </div>
-                        <div className="text-sm font-mono font-bold text-amber-400">{p.soldPrice} L</div>
-                      </motion.li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-500">
-                    <Users size={40} className="mb-2 opacity-40" />
-                    <p className="text-xs">No players acquired yet. Start swiping &amp; bidding on player cards!</p>
-                  </div>
-                )}
+                        <div className="font-mono font-bold text-[#38bdf8] tabular-nums">
+                          {p.soldPrice} Lakhs
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-[var(--text-secondary)]">
+                      <Users size={36} className="mb-2 text-[var(--text-tertiary)]" />
+                      <p className="text-xs">No players acquired yet. Place bids to build your squad!</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {sidebarTab === 'pitch' && (
+            {/* TAB 2: PITCH MAP */}
+            {activeTab === 'pitch' && (
               <div className="flex-1 overflow-y-auto">
-                <PitchRoster teamName={team?.name || 'Team Roster'} players={team?.players || []} />
+                <PitchRoster teamName={team?.name || 'My Squad'} players={team?.players || []} />
               </div>
             )}
 
-            {sidebarTab === 'budget' && (
-              <div className="flex-1 flex flex-col gap-3">
-                <div className="text-xs text-slate-400 font-medium">
-                  Private strategy worksheet for target player valuations:
+            {/* TAB 3: STRATEGY WORKSHEET */}
+            {activeTab === 'notes' && (
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="text-xs text-[var(--text-secondary)] font-medium">
+                  Private strategic target valuations (auto-saved to your browser):
                 </div>
                 <textarea
-                  className="flex-1 w-full bg-slate-950/80 text-slate-100 border border-[rgba(255,255,255,0.1)] rounded-2xl p-4 text-xs font-mono outline-none focus:border-amber-400 transition-colors resize-none placeholder:text-slate-600"
-                  placeholder="Target Wishlist:&#10;- Virat Kohli (Max 250L)&#10;- Jasprit Bumrah (Max 300L)&#10;- Rashid Khan (Max 180L)"
                   value={budgetNotes}
-                  onChange={(e) => setBudgetNotes(e.target.value)}
+                  onChange={(e) => handleNotesChange(e.target.value)}
+                  placeholder="Target Player Valuations:&#10;- Virat Kohli (Max: 240L)&#10;- Jasprit Bumrah (Max: 280L)&#10;- Hardik Pandya (Max: 180L)"
+                  className="flex-1 w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[12px] p-3 text-xs font-mono text-[var(--text-primary)] outline-none focus:border-[#38bdf8] resize-none leading-relaxed"
                 />
               </div>
             )}
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+
+      {/* P0 WIN CELEBRATION OVERLAY */}
+      <WinCelebrationOverlay
+        isOpen={!!winCelebration?.isOpen}
+        playerName={winCelebration?.playerName}
+        teamName={winCelebration?.teamName}
+        amount={winCelebration?.amount}
+        onClose={() => setWinCelebration(null)}
+      />
+
+      {/* FLOATING OUTBID & STATUS TOAST */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
+    </AppShell>
   );
 };
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, X, Play, Sparkles, Award } from 'lucide-react';
+import { Trophy, X, Play, Activity, Award, Swords, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Team {
@@ -26,6 +26,15 @@ interface TournamentSimulatorProps {
 export const TournamentSimulator: React.FC<TournamentSimulatorProps> = ({ teams, onClose }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState<number>(-1);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     // Initialize simple bracket
@@ -81,7 +90,7 @@ export const TournamentSimulator: React.FC<TournamentSimulatorProps> = ({ teams,
 
         const m = [...matches];
         m[currentMatchIndex].status = 'playing';
-        m[currentMatchIndex].logs = ['Match started! Teams taking the field.'];
+        m[currentMatchIndex].logs = ['Match underway! Players taking positions on the pitch.'];
         setMatches(m);
 
         let over = 1;
@@ -94,21 +103,21 @@ export const TournamentSimulator: React.FC<TournamentSimulatorProps> = ({ teams,
               const eventRandom = Math.random();
               let log = '';
               const battingTeam = eventRandom > 0.5 ? current.team1!.name : current.team2!.name;
-              if (eventRandom > 0.8) log = `Over ${over}: ${battingTeam} hits a massive SIX into the stands! 🔥`;
-              else if (eventRandom > 0.6) log = `Over ${over}: ${battingTeam} loses a crucial wicket! CLEAN BOWLED! 💥`;
-              else log = `Over ${over}: Quick single by ${battingTeam}, solid rotation of strike.`;
+              if (eventRandom > 0.8) log = `Over ${over}: ${battingTeam} powers a towering SIX over long-on! 🔥`;
+              else if (eventRandom > 0.6) log = `Over ${over}: Timber! Crucial wicket falls for ${battingTeam}! 💥`;
+              else log = `Over ${over}: Pushed into the gap by ${battingTeam} for a sharp single.`;
 
               current.logs.push(log);
               over++;
             } else {
               clearInterval(interval);
-              const t1Score = (current.team1!.rating || 75) * Math.random();
-              const t2Score = (current.team2!.rating || 75) * Math.random();
+              const t1Score = (current.team1!.rating || 75) * (0.8 + Math.random() * 0.4);
+              const t2Score = (current.team2!.rating || 75) * (0.8 + Math.random() * 0.4);
               const winner = t1Score > t2Score ? current.team1 : current.team2;
 
               current.winner = winner;
               current.status = 'completed';
-              current.logs.push(`🏆 Match Over: ${winner!.name} wins and advances!`);
+              current.logs.push(`🏆 Match Decision: ${winner!.name} claims victory and advances!`);
 
               setTimeout(() => {
                 setCurrentMatchIndex((c) => c + 1);
@@ -116,14 +125,14 @@ export const TournamentSimulator: React.FC<TournamentSimulatorProps> = ({ teams,
             }
             return newMatches;
           });
-        }, 900);
+        }, 850);
       }
     } else if (currentMatchIndex === matches.length && matches.length > 0) {
       const finalMatch = matches[matches.length - 1];
       if (finalMatch.winner && finalMatch.status === 'completed') {
         confetti({
           particleCount: 200,
-          spread: 100,
+          spread: 110,
           origin: { y: 0.5 },
         });
       }
@@ -133,121 +142,150 @@ export const TournamentSimulator: React.FC<TournamentSimulatorProps> = ({ teams,
   const champion = matches.length > 0 && currentMatchIndex === matches.length ? matches[matches.length - 1].winner : null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-2xl p-6 flex flex-col overflow-y-auto font-sans">
-      <div className="max-w-5xl w-full mx-auto flex-1 flex flex-col">
-        {/* HEADER */}
-        <div className="flex justify-between items-center pb-4 mb-6 border-b border-[rgba(255,255,255,0.08)]">
-          <div className="flex items-center gap-2">
-            <Trophy className="text-amber-400" size={32} />
-            <div>
-              <h2 className="text-2xl font-black text-white">Post-Auction Tournament Simulator</h2>
-              <p className="text-xs text-slate-400">Simulating league playoffs based on drafted squad ratings</p>
+    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-xl p-4 sm:p-6 flex flex-col overflow-y-auto font-sans">
+      <div className="max-w-5xl w-full mx-auto flex-1 flex flex-col my-auto">
+        {/* MODAL CARD CONTAINER */}
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-prominent)] rounded-3xl p-6 sm:p-8 shadow-2xl flex-1 flex flex-col">
+          {/* HEADER */}
+          <div className="flex justify-between items-center pb-4 mb-6 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <Trophy size={22} />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">Playoff Tournament Simulator</h2>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Simulating knockouts using squad valuations and balance metrics
+                </p>
+              </div>
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* SIMULATION TRIGGER BUTTON */}
-        {matches.length > 0 && currentMatchIndex === -1 && (
-          <div className="mb-6 text-center">
             <button
-              onClick={startSimulation}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 hover:from-emerald-400 hover:to-amber-400 text-slate-950 font-black text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 mx-auto"
+              onClick={onClose}
+              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-[var(--border-subtle)] text-slate-300 transition-colors focus-ring"
+              title="Close modal (Esc)"
             >
-              <Play size={18} /> Launch Playoff Simulation
+              <X size={18} />
             </button>
           </div>
-        )}
 
-        {/* BRACKET & LIVE COMMENTARY GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
-          {/* BRACKET TREE */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 shadow-2xl flex flex-col">
-            <h3 className="text-sm font-black uppercase text-amber-400 tracking-wider mb-4 flex items-center gap-1.5">
-              <Award size={16} /> Tournament Bracket
-            </h3>
-            <div className="space-y-4 flex-1">
-              {matches.map((m) => (
-                <div
-                  key={m.id}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    m.status === 'playing'
-                      ? 'bg-amber-500/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]'
-                      : 'bg-slate-950/60 border-[rgba(255,255,255,0.05)]'
-                  }`}
-                >
-                  <div className="text-[10px] uppercase font-bold text-slate-400 mb-2">{m.id}</div>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className={m.winner?.id === m.team1?.id ? 'text-amber-400 font-black' : 'text-slate-200'}>
-                      {m.team1 ? m.team1.name : 'TBD'}
-                    </span>
-                    <span className="text-slate-500 text-xs italic mx-2">vs</span>
-                    <span className={m.winner?.id === m.team2?.id ? 'text-amber-400 font-black' : 'text-slate-200'}>
-                      {m.team2 ? m.team2.name : 'TBD'}
-                    </span>
-                  </div>
-                  {m.winner && (
-                    <div className="mt-3 text-xs font-black text-emerald-400 flex items-center gap-1">
-                      <Trophy size={14} /> Winner: {m.winner.name}
-                    </div>
-                  )}
-                </div>
-              ))}
+          {/* SIMULATION TRIGGER BUTTON */}
+          {matches.length > 0 && currentMatchIndex === -1 && (
+            <div className="mb-6 text-center">
+              <button
+                onClick={startSimulation}
+                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-400 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 mx-auto focus-ring"
+              >
+                <Play size={16} /> Launch Playoff Bracket
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* LIVE PLAY-BY-PLAY COMMENTARY FEED */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 shadow-2xl flex flex-col">
-            <h3 className="text-sm font-black uppercase text-emerald-400 tracking-wider mb-4 flex items-center gap-1.5">
-              <Sparkles size={16} /> Ball-by-Ball Live Commentary
-            </h3>
-
-            {currentMatchIndex >= 0 && currentMatchIndex < matches.length && (
-              <div className="flex-1 flex flex-col justify-between">
-                <div className="font-bold text-sm text-amber-400 pb-2 border-b border-slate-800">
-                  {matches[currentMatchIndex].id}: {matches[currentMatchIndex].team1?.name} vs{' '}
-                  {matches[currentMatchIndex].team2?.name}
-                </div>
-                <div className="space-y-2 my-4 flex-1 overflow-y-auto max-h-72">
-                  {matches[currentMatchIndex].logs.map((log, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="p-3 rounded-xl bg-slate-950/70 border border-[rgba(255,255,255,0.04)] text-xs text-slate-200 font-mono"
+          {/* BRACKET & COMMENTARY GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[380px]">
+            {/* BRACKET TREE */}
+            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <h3 className="text-xs font-black uppercase text-amber-400 tracking-wider mb-4 flex items-center gap-1.5">
+                  <Award size={14} /> Knockout Bracket
+                </h3>
+                <div className="space-y-3.5">
+                  {matches.map((m) => (
+                    <div
+                      key={m.id}
+                      className={`p-4 rounded-xl border transition-all ${
+                        m.status === 'playing'
+                          ? 'bg-amber-500/10 border-amber-500/50 shadow-lg'
+                          : m.status === 'completed'
+                          ? 'bg-slate-900 border-slate-700/60'
+                          : 'bg-slate-950/60 border-[var(--border-subtle)]'
+                      }`}
                     >
-                      {log}
-                    </motion.div>
+                      <div className="text-[10px] uppercase font-bold text-[var(--text-tertiary)] mb-2 flex items-center justify-between">
+                        <span>{m.id}</span>
+                        {m.status === 'playing' && (
+                          <span className="text-amber-400 flex items-center gap-1 text-[9px] font-black">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" /> LIVE
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center text-sm font-bold">
+                        <span className={m.winner?.id === m.team1?.id ? 'text-amber-400 font-black' : 'text-slate-200'}>
+                          {m.team1 ? m.team1.name : 'TBD'}
+                        </span>
+                        <span className="text-slate-500 text-xs italic mx-2">vs</span>
+                        <span className={m.winner?.id === m.team2?.id ? 'text-amber-400 font-black' : 'text-slate-200'}>
+                          {m.team2 ? m.team2.name : 'TBD'}
+                        </span>
+                      </div>
+                      {m.winner && (
+                        <div className="mt-2.5 pt-2 border-t border-[var(--border-subtle)] text-xs font-black text-emerald-400 flex items-center gap-1.5">
+                          <Trophy size={13} /> Winner: {m.winner.name}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {champion && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-amber-500/20 to-slate-950 rounded-2xl border border-amber-500/40"
-              >
-                <Trophy size={48} className="text-amber-400 mb-2 animate-bounce" />
-                <h3 className="text-2xl font-black text-amber-400 mb-1">TOURNAMENT CHAMPION!</h3>
-                <div className="text-3xl font-black text-white">{champion.name}</div>
-              </motion.div>
-            )}
-
-            {currentMatchIndex === -1 && (
-              <div className="flex-1 flex items-center justify-center text-center text-xs text-slate-500 p-8">
-                Click "Launch Playoff Simulation" to start match commentary.
+              <div className="text-[10px] text-[var(--text-tertiary)] mt-4 text-center">
+                Squad ratings derived from signed player ratings &amp; auction cap allocation.
               </div>
-            )}
+            </div>
+
+            {/* LIVE PLAY-BY-PLAY COMMENTARY FEED */}
+            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-2xl p-5 flex flex-col justify-between">
+              <h3 className="text-xs font-black uppercase text-emerald-400 tracking-wider mb-4 flex items-center gap-1.5">
+                <Activity size={14} /> Over-by-Over Commentary
+              </h3>
+
+              {currentMatchIndex >= 0 && currentMatchIndex < matches.length && (
+                <div className="flex-1 flex flex-col justify-between min-h-0">
+                  <div className="font-bold text-xs text-amber-300 pb-2 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                    <span>
+                      {matches[currentMatchIndex].id}: {matches[currentMatchIndex].team1?.name} vs{' '}
+                      {matches[currentMatchIndex].team2?.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">Match {currentMatchIndex + 1}/{matches.length}</span>
+                  </div>
+                  <div className="space-y-2 my-3 flex-1 overflow-y-auto max-h-64 pr-1">
+                    {matches[currentMatchIndex].logs.map((log, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="p-2.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs text-slate-200 font-mono"
+                      >
+                        {log}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {champion && (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-amber-500/10 rounded-2xl border border-amber-500/40"
+                >
+                  <Trophy size={44} className="text-amber-400 mb-2 animate-bounce" />
+                  <div className="text-xs font-black uppercase tracking-widest text-amber-400 mb-1">
+                    TOURNAMENT CHAMPION
+                  </div>
+                  <div className="text-2xl font-black text-white">{champion.name}</div>
+                </motion.div>
+              )}
+
+              {currentMatchIndex === -1 && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center text-xs text-[var(--text-tertiary)] p-6">
+                  <Swords size={32} className="text-slate-600 mb-2" />
+                  <span>Click "Launch Playoff Bracket" above to initiate simulation.</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+

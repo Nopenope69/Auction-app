@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Landing } from './pages/Landing';
 import { AdminConsole } from './pages/AdminConsole';
 import { BidderTerminal } from './pages/BidderTerminal';
 import { BroadcastOverlay } from './pages/BroadcastOverlay';
 import { SpectatorView } from './pages/SpectatorView';
+import { DesignShowcase } from './pages/DesignShowcase';
+import { getInitialTheme, applyTheme } from './lib/theme';
 import type { Role } from './hooks/useAuction';
 
 // Routing is deliberately just URL query params (?room=&token=&view=&team=)
@@ -24,6 +26,14 @@ function App() {
   const teamId = params.get('team');
   const view = params.get('view') || (token ? 'admin' : 'spectator');
 
+  useEffect(() => {
+    applyTheme(getInitialTheme());
+  }, []);
+
+  if (view === 'preview' || params.get('preview') === 'true') {
+    return <DesignShowcase />;
+  }
+
   if (!roomId) {
     return <Landing />;
   }
@@ -43,3 +53,4 @@ function App() {
 }
 
 export default App;
+

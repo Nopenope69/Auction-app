@@ -21,6 +21,7 @@ export interface Player {
   role: string;
   basePrice: number;
   photoUrl?: string;
+  previousTeamCode?: string;
   status: 'available' | 'sold' | 'unsold';
   soldPrice?: number;
   teamId?: string;
