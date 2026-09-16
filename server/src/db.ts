@@ -31,6 +31,7 @@ const DB_PATH = path.join(DATA_DIR, 'auction.db');
 export const db = new DatabaseSync(DB_PATH);
 
 db.exec(`
+  PRAGMA busy_timeout = 5000;
   PRAGMA journal_mode = WAL;
 
   CREATE TABLE IF NOT EXISTS rooms (
@@ -88,6 +89,11 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_bid_events_room ON bid_events(room_id, timestamp);
 
+  CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    applied_at INTEGER NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS room_runtime (
     room_id TEXT PRIMARY KEY,
     active_player_id TEXT,
@@ -95,9 +101,16 @@ db.exec(`
     current_bidder_id TEXT,
     timer INTEGER NOT NULL,
     timer_active INTEGER NOT NULL,
-    rtm_state_json TEXT
+    deadline_at INTEGER,
+    rtm_state_json TEXT,
+    undo_stack_json TEXT
   );
 `);
+
+// Safe column migrations if database already existed
+try { db.exec(`ALTER TABLE room_runtime ADD COLUMN deadline_at INTEGER;`); } catch {}
+try { db.exec(`ALTER TABLE room_runtime ADD COLUMN undo_stack_json TEXT;`); } catch {}
+
 
 function nowMs() {
   return Date.now();
@@ -277,7 +290,9 @@ export function loadRoom(roomId: string): RoomSnapshot | null {
       currentBidderId: runtime?.current_bidder_id ?? null,
       timer: runtime?.timer ?? DEFAULT_RULES.timerSeconds,
       timerActive: !!runtime?.timer_active,
+      deadlineAt: runtime?.deadline_at ?? null,
       rtmState: runtime?.rtm_state_json ? (JSON.parse(runtime.rtm_state_json) as RtmState) : null,
+      undoStack: runtime?.undo_stack_json ? JSON.parse(runtime.undo_stack_json) : [],
     },
     biddingLog,
   };
@@ -296,7 +311,9 @@ export function persistSnapshot(
     currentBidderId: string | null;
     timer: number;
     timerActive: boolean;
+    deadlineAt?: number | null;
     rtmState: RtmState | null;
+    undoStack?: string[];
   }
 ) {
   const updatePlayer = db.prepare(
@@ -305,12 +322,13 @@ export function persistSnapshot(
   const updateTeam = db.prepare(`UPDATE teams SET purse=?, rtm_cards=? WHERE room_id=? AND id=?`);
   const updateRoomStatus = db.prepare(`UPDATE rooms SET status=? WHERE id=?`);
   const upsertRuntime = db.prepare(`
-    INSERT INTO room_runtime (room_id, active_player_id, current_bid, current_bidder_id, timer, timer_active, rtm_state_json)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO room_runtime (room_id, active_player_id, current_bid, current_bidder_id, timer, timer_active, deadline_at, rtm_state_json, undo_stack_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(room_id) DO UPDATE SET
       active_player_id=excluded.active_player_id, current_bid=excluded.current_bid,
       current_bidder_id=excluded.current_bidder_id, timer=excluded.timer,
-      timer_active=excluded.timer_active, rtm_state_json=excluded.rtm_state_json
+      timer_active=excluded.timer_active, deadline_at=excluded.deadline_at,
+      rtm_state_json=excluded.rtm_state_json, undo_stack_json=excluded.undo_stack_json
   `);
 
   db.exec('BEGIN');
@@ -329,7 +347,9 @@ export function persistSnapshot(
       data.currentBidderId,
       data.timer,
       data.timerActive ? 1 : 0,
-      data.rtmState ? JSON.stringify(data.rtmState) : null
+      data.deadlineAt ?? null,
+      data.rtmState ? JSON.stringify(data.rtmState) : null,
+      data.undoStack ? JSON.stringify(data.undoStack) : null
     );
     db.exec('COMMIT');
   } catch (err) {
@@ -338,25 +358,66 @@ export function persistSnapshot(
   }
 }
 
+// Fast single-row delta update for 1-second countdown ticks (avoids rewriting all player/team rows)
+export function updateRoomTimer(roomId: string, timer: number, deadlineAt: number | null = null) {
+  db.prepare(
+    `UPDATE room_runtime SET timer = ?, deadline_at = ? WHERE room_id = ?`
+  ).run(timer, deadlineAt, roomId);
+}
+
+// Synchronize bid_events with undo snapshot
+export function revertBidEventsToSnapshot(roomId: string, validEventIds: string[]) {
+  if (validEventIds.length === 0) {
+    db.prepare(`DELETE FROM bid_events WHERE room_id = ?`).run(roomId);
+  } else {
+    const placeholders = validEventIds.map(() => '?').join(',');
+    db.prepare(
+      `DELETE FROM bid_events WHERE room_id = ? AND id NOT IN (${placeholders})`
+    ).run(roomId, ...validEventIds);
+  }
+}
+
+export function getBidEvents(roomId: string): BidLogEntry[] {
+  const rows = db.prepare(`SELECT * FROM bid_events WHERE room_id = ? ORDER BY timestamp ASC`).all(roomId) as any[];
+  return rows.map((r) => ({
+    id: r.id,
+    playerId: r.player_id,
+    playerName: r.player_name,
+    teamId: r.team_id,
+    teamName: r.team_name,
+    amount: r.amount,
+    timestamp: r.timestamp,
+    type: r.type,
+  }));
+}
+
 export function appendBidEvent(roomId: string, entry: BidLogEntry) {
+  const safeAmount = Number(entry.amount);
+  if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+    throw new TypeError(`Invalid bid amount for SQLite insertion: ${entry.amount}`);
+  }
   db.prepare(
     `INSERT INTO bid_events (id, room_id, player_id, player_name, team_id, team_name, amount, timestamp, type)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(entry.id, roomId, entry.playerId, entry.playerName, entry.teamId, entry.teamName, entry.amount, entry.timestamp, entry.type);
+  ).run(entry.id, roomId, entry.playerId, entry.playerName, entry.teamId, entry.teamName, safeAmount, entry.timestamp, entry.type);
 }
 
 export function resetRoom(roomId: string) {
+  const roomRow = db.prepare(`SELECT rules_json FROM rooms WHERE id = ?`).get(roomId) as any;
+  const rules: AuctionRules = roomRow ? JSON.parse(roomRow.rules_json) : DEFAULT_RULES;
+  const initialRtmCards = rules.rtmEnabled ? 3 : 0;
+
   db.exec('BEGIN');
   try {
     db.prepare(`UPDATE players SET status='available', sold_price=NULL, team_id=NULL WHERE room_id=?`).run(roomId);
     db.prepare(`SELECT id, original_purse FROM teams WHERE room_id=?`)
       .all(roomId)
       .forEach((t: any) => {
-        db.prepare(`UPDATE teams SET purse=?, rtm_cards=3 WHERE room_id=? AND id=?`).run(t.original_purse, roomId, t.id);
+        db.prepare(`UPDATE teams SET purse=?, rtm_cards=? WHERE room_id=? AND id=?`).run(t.original_purse, initialRtmCards, roomId, t.id);
       });
     db.prepare(`DELETE FROM bid_events WHERE room_id=?`).run(roomId);
     db.prepare(
-      `UPDATE room_runtime SET active_player_id=NULL, current_bid=0, current_bidder_id=NULL, timer_active=0, rtm_state_json=NULL WHERE room_id=?`
+      `UPDATE room_runtime SET active_player_id=NULL, current_bid=0, current_bidder_id=NULL, timer_active=0, deadline_at=NULL, rtm_state_json=NULL, undo_stack_json=NULL WHERE room_id=?`
     ).run(roomId);
     db.prepare(`UPDATE rooms SET status='setup' WHERE id=?`).run(roomId);
     db.exec('COMMIT');
@@ -365,6 +426,96 @@ export function resetRoom(roomId: string) {
     throw err;
   }
 }
+
+// SQLite Online Backup API / VACUUM INTO for clean, non-locking backup artifacts
+export function backupDatabase(targetPath: string) {
+  db.exec(`VACUUM INTO '${targetPath.replace(/'/g, "''")}';`);
+}
+
+// Admin CRUD Operations
+export function addManualPlayer(roomId: string, player: Player) {
+  db.prepare(`
+    INSERT INTO players (room_id, id, name, role, base_price, photo_url, previous_team_code, status, sold_price, team_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    roomId,
+    player.id,
+    player.name,
+    player.role,
+    player.basePrice,
+    player.photoUrl ?? null,
+    player.previousTeamCode ?? null,
+    player.status,
+    player.soldPrice ?? null,
+    player.teamId ?? null
+  );
+}
+
+export function updatePlayerRecord(roomId: string, playerId: string, updates: Partial<Player>) {
+  const current = db.prepare(`SELECT * FROM players WHERE room_id = ? AND id = ?`).get(roomId, playerId) as any;
+  if (!current) return false;
+
+  const name = updates.name !== undefined ? updates.name : current.name;
+  const role = updates.role !== undefined ? updates.role : current.role;
+  const basePrice = updates.basePrice !== undefined ? updates.basePrice : current.base_price;
+  const photoUrl = updates.photoUrl !== undefined ? updates.photoUrl : current.photo_url;
+  const previousTeamCode = updates.previousTeamCode !== undefined ? updates.previousTeamCode : current.previous_team_code;
+
+  db.prepare(`
+    UPDATE players SET name=?, role=?, base_price=?, photo_url=?, previous_team_code=?
+    WHERE room_id=? AND id=?
+  `).run(name, role, basePrice, photoUrl, previousTeamCode, roomId, playerId);
+  return true;
+}
+
+export function deletePlayerRecord(roomId: string, playerId: string): boolean {
+  const player = db.prepare(`SELECT status FROM players WHERE room_id = ? AND id = ?`).get(roomId, playerId) as any;
+  if (!player || player.status !== 'available') return false;
+  db.prepare(`DELETE FROM players WHERE room_id = ? AND id = ?`).run(roomId, playerId);
+  return true;
+}
+
+export function updateTeamRecord(roomId: string, teamId: string, updates: { name?: string; purse?: number }) {
+  const current = db.prepare(`SELECT * FROM teams WHERE room_id = ? AND id = ?`).get(roomId, teamId) as any;
+  if (!current) return false;
+
+  const name = updates.name !== undefined ? updates.name : current.name;
+  const purse = updates.purse !== undefined ? updates.purse : current.purse;
+
+  db.prepare(`UPDATE teams SET name=?, purse=? WHERE room_id=? AND id=?`).run(name, purse, roomId, teamId);
+  return true;
+}
+
+export function listTeamLinks(roomId: string): Team[] {
+  const rows = db.prepare(`SELECT * FROM teams WHERE room_id = ?`).all(roomId) as any[];
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    code: r.code,
+    purse: r.purse,
+    originalPurse: r.original_purse,
+    rtmCards: r.rtm_cards,
+    token: r.token,
+    rosterIds: [],
+  }));
+}
+
+export function deleteRoom(roomId: string) {
+  db.exec('BEGIN');
+  try {
+    db.prepare(`DELETE FROM rooms WHERE id = ?`).run(roomId);
+    db.prepare(`DELETE FROM teams WHERE room_id = ?`).run(roomId);
+    db.prepare(`DELETE FROM players WHERE room_id = ?`).run(roomId);
+    db.prepare(`DELETE FROM bid_events WHERE room_id = ?`).run(roomId);
+    db.prepare(`DELETE FROM room_runtime WHERE room_id = ?`).run(roomId);
+    db.exec('COMMIT');
+    return true;
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
 
 export function findTeamByToken(roomId: string, token: string): Team | null {
   const row = db.prepare(`SELECT * FROM teams WHERE room_id = ? AND token = ?`).get(roomId, token) as any;

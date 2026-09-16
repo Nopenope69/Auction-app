@@ -153,4 +153,18 @@ describe('computeAuctionDerived', () => {
     expect(derived.isHighestBidder).toBe(true);
     expect(derived.isBidDisabled).toBe(true);
   });
+
+  it('disables bid button when auction status is completed', () => {
+    const team = makeTeam({ id: 't1', purse: 1000, originalPurse: 1000 });
+    const state = makeState({
+      status: 'completed',
+      teams: [team],
+      activePlayer: makePlayer({ basePrice: 20 }),
+      currentBid: 40,
+      highestBidder: 'other_team',
+    });
+    const derived = computeAuctionDerived(state, 't1');
+
+    expect(derived.isBidDisabled).toBe(true);
+  });
 });

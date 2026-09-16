@@ -97,7 +97,74 @@ export const DEFAULT_RULES: AuctionRules = {
   ],
 };
 
-// ---- WebSocket wire protocol ----
+import { z } from 'zod';
+
+export const ALLOWED_EMOJIS = ['👏', '🔥', '🏏', '💰', '😮', '🎉'] as const;
+
+export const PlaceBidSchema = z.object({
+  type: z.literal('PLACE_BID'),
+  teamId: z.string().optional(),
+  amount: z.number().positive().finite().optional(),
+});
+
+export const SetActivePlayerSchema = z.object({
+  type: z.literal('SET_ACTIVE_PLAYER'),
+  id: z.string().min(1),
+});
+
+export const StartTimerSchema = z.object({
+  type: z.literal('START_TIMER'),
+});
+
+export const PauseTimerSchema = z.object({
+  type: z.literal('PAUSE_TIMER'),
+});
+
+export const MarkSoldSchema = z.object({
+  type: z.literal('MARK_SOLD'),
+});
+
+export const MarkUnsoldSchema = z.object({
+  type: z.literal('MARK_UNSOLD'),
+});
+
+export const ExerciseRtmSchema = z.object({
+  type: z.literal('EXERCISE_RTM'),
+  accept: z.boolean(),
+});
+
+export const UndoActionSchema = z.object({
+  type: z.literal('UNDO_ACTION'),
+});
+
+export const ResetSchema = z.object({
+  type: z.literal('RESET'),
+});
+
+export const EndAuctionSchema = z.object({
+  type: z.literal('END_AUCTION'),
+});
+
+export const ReactionSchema = z.object({
+  type: z.literal('REACTION'),
+  emoji: z.string().max(10).refine((e) => (ALLOWED_EMOJIS as readonly string[]).includes(e), {
+    message: 'Invalid reaction emoji',
+  }),
+});
+
+export const ClientMessageSchema = z.discriminatedUnion('type', [
+  PlaceBidSchema,
+  SetActivePlayerSchema,
+  StartTimerSchema,
+  PauseTimerSchema,
+  MarkSoldSchema,
+  MarkUnsoldSchema,
+  ExerciseRtmSchema,
+  UndoActionSchema,
+  ResetSchema,
+  EndAuctionSchema,
+  ReactionSchema,
+]);
 
 // Server -> client
 export interface SyncMessage {
@@ -111,6 +178,7 @@ export interface SyncMessage {
     highestBidder: string | null;
     timer: number;
     timerActive: boolean;
+    deadlineAt?: number | null;
     rtmState: RtmState | null;
     teams: TeamWithPlayers[];
     players: Player[];
@@ -132,19 +200,7 @@ export interface ErrorMessage {
 
 export type ServerMessage = SyncMessage | ReactionMessage | ErrorMessage;
 
-// Client -> server. Fields are spread at the top level alongside `type`
-// (not nested under a `payload` key) to match the existing client hook.
-export type ClientMessage =
-  | { type: 'PLACE_BID'; teamId: string; amount?: number }
-  | { type: 'SET_ACTIVE_PLAYER'; id: string }
-  | { type: 'START_TIMER' }
-  | { type: 'PAUSE_TIMER' }
-  | { type: 'MARK_SOLD' }
-  | { type: 'MARK_UNSOLD' }
-  | { type: 'EXERCISE_RTM'; accept: boolean }
-  | { type: 'UNDO_ACTION' }
-  | { type: 'RESET' }
-  | { type: 'REACTION'; emoji: string };
+export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 
 export type Role = 'admin' | 'team' | 'spectator';
 
@@ -162,7 +218,10 @@ export interface RoomSnapshot {
     currentBidderId: string | null;
     timer: number;
     timerActive: boolean;
+    deadlineAt?: number | null;
     rtmState: RtmState | null;
+    undoStack?: string[];
   };
   biddingLog: BidLogEntry[];
 }
+

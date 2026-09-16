@@ -21,7 +21,13 @@ export function getRoom(roomId: string): AuctionRoom | null {
   return room;
 }
 
-export function forgetRoom(roomId: string) {
+export function forgetRoom(roomId: string, force = false) {
+  const room = liveRooms.get(roomId);
+  if (!room) return;
+  if (!force && room.isTimerActive()) {
+    room.pauseTimer();
+  }
+  room.destroy();
   liveRooms.delete(roomId);
 }
 

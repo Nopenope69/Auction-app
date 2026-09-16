@@ -13,9 +13,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "helmet": "^8.3.0",
     "multer": "^2.2.0",
+    "pino": "^10.3.1",
     "playwright": "^1.61.1",
-    "ws": "^8.16.0"
+    "ws": "^8.16.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

@@ -1,0 +1,55 @@
+env:
+  contexts:
+    - name: "Cricket Auction Platform Context"
+      urls:
+        - "http://localhost:3001"
+      includePaths:
+        - "http://localhost:3001/.*"
+      excludePaths:
+        - "http://localhost:3001/api/auctions/.*/data-purge.*"
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  - type: spider
+    parameters:
+      context: "Cricket Auction Platform Context"
+      maxDuration: 2
+      url: "http://localhost:3001"
+
+  - type: passiveScan-config
+    parameters:
+      maxAlertsPerRule: 10
+      scanOnlyInScope: true
+
+  - type: activeScan
+    parameters:
+      context: "Cricket Auction Platform Context"
+      policy: "Default Policy"
+      maxDuration: 5
+    policyDefinition:
+      defaultStrength: "medium"
+      defaultThreshold: "medium"
+      rules:
+        # SQL Injection
+        - id: 40018
+          threshold: "medium"
+          strength: "high"
+        # Cross Site Scripting (Reflected)
+        - id: 40012
+          threshold: "medium"
+        # Remote Code Execution
+        - id: 90020
+          threshold: "medium"
+        # CORS Misconfiguration
+        - id: 10098
+          threshold: "medium"
+
+  - type: report
+    parameters:
+      template: "traditional-html"
+      reportDir: "tests/security/reports"
+      reportFile: "zap-security-report.html"
+      reportTitle: "OWASP ZAP DAST Assessment - Cricket Auction Platform"

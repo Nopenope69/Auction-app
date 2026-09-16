@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useAuction, Role } from '../hooks/useAuction';
 import { useAuctionDerived } from '../hooks/useAuctionDerived';
-import { Play, Pause, CheckCircle, XCircle, RotateCcw, Upload, RefreshCw, Download, Link2, Loader2, Award, Gavel, Shield, Sparkles, Volume2 } from 'lucide-react';
+import { Play, Pause, CheckCircle, XCircle, RotateCcw, Upload, RefreshCw, Download, Link2, Loader2, Award, Gavel, Shield, Sparkles, Volume2, Plus, Trash2, Edit, Users, Flag, X, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { buildResultsCsv, downloadTextFile } from '../lib/csvExport';
 import { AnalyticsPanel } from '../components/AnalyticsPanel';
@@ -23,6 +23,113 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
   const derived = useAuctionDerived(auction); // no teamId - admin has no "my team"
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+
+  // Team Links modal state
+  const [showTeamLinksModal, setShowTeamLinksModal] = useState(false);
+  const [teamLinks, setTeamLinks] = useState<{ id: string; name: string; code: string; purse: number; token: string }[]>([]);
+  const [teamLinksLoading, setTeamLinksLoading] = useState(false);
+
+  // Manual Player Add modal state
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [addPlayerForm, setAddPlayerForm] = useState({
+    name: '',
+    role: 'Batsman' as 'Batsman' | 'Bowler' | 'All-Rounder' | 'Wicketkeeper',
+    basePrice: 20,
+    photoUrl: '',
+    previousTeamCode: '',
+  });
+
+  // Inline Player Edit state
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
+  const [editPlayerForm, setEditPlayerForm] = useState({ name: '', basePrice: 20 });
+
+  const handleFetchTeamLinks = async () => {
+    setShowTeamLinksModal(true);
+    setTeamLinksLoading(true);
+    try {
+      const res = await fetch(`/api/auctions/${roomId}/team-links`, {
+        headers: { 'x-admin-token': token || '' },
+      });
+      const data = await res.json();
+      if (res.ok) setTeamLinks(data.teams || []);
+    } catch (e) {
+      console.error('Failed to fetch team links', e);
+    } finally {
+      setTeamLinksLoading(false);
+    }
+  };
+
+  const handleAddManualPlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addPlayerForm.name.trim()) return;
+    try {
+      const res = await fetch(`/api/auctions/${roomId}/players/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': token || '' },
+        body: JSON.stringify(addPlayerForm),
+      });
+      if (res.ok) {
+        setShowAddPlayerModal(false);
+        setAddPlayerForm({ name: '', role: 'Batsman', basePrice: 20, photoUrl: '', previousTeamCode: '' });
+      }
+    } catch (e: any) {
+      alert(`Failed to add player: ${e.message}`);
+    }
+  };
+
+  const handleStartEditPlayer = (p: { id: string; name: string; basePrice: number }) => {
+    setEditingPlayerId(p.id);
+    setEditPlayerForm({ name: p.name, basePrice: p.basePrice });
+  };
+
+  const handleSaveEditPlayer = async (playerId: string) => {
+    try {
+      await fetch(`/api/auctions/${roomId}/players/${playerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': token || '' },
+        body: JSON.stringify(editPlayerForm),
+      });
+      setEditingPlayerId(null);
+    } catch (e: any) {
+      alert(`Failed to update player: ${e.message}`);
+    }
+  };
+
+  const handleDeletePlayer = async (playerId: string, name: string) => {
+    if (!window.confirm(`Delete player ${name} from pool?`)) return;
+    try {
+      await fetch(`/api/auctions/${roomId}/players/${playerId}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': token || '' },
+      });
+    } catch (e: any) {
+      alert(`Failed to delete player: ${e.message}`);
+    }
+  };
+
+  const handleEndAuction = () => {
+    if (window.confirm('End this tournament auction? All bidding will be completed and locked.')) {
+      auction.endAuction();
+    }
+  };
+
+  const handlePurgeData = async () => {
+    const confirmation = window.prompt('Type DELETE to permanently erase this room and all personal player data (DPDP compliance):');
+    if (confirmation === 'DELETE') {
+      try {
+        const res = await fetch(`/api/auctions/${roomId}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': token || '' },
+        });
+        if (res.ok) {
+          alert('Auction room and all associated data permanently erased.');
+          window.location.href = '/';
+        }
+      } catch (e: any) {
+        alert(`Failed to purge data: ${e.message}`);
+      }
+    }
+  };
 
   // Narration (sound + AI voice) is NOT triggered here. useAuction.ts
   // already announces sold/unsold once, off of the server's actual
@@ -148,6 +255,21 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           </div>
 
           <button
+            className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-400 transition-colors flex items-center gap-1.5"
+            onClick={handleFetchTeamLinks}
+            title="View and copy private team bidder URLs"
+          >
+            <Users size={14} /> Team Links
+          </button>
+          <button
+            className="px-4 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-bold text-purple-300 transition-colors flex items-center gap-1.5"
+            onClick={handleEndAuction}
+            disabled={auction.status === 'completed'}
+            title="Finalize and lock the tournament auction"
+          >
+            <Flag size={14} /> End Auction
+          </button>
+          <button
             className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 transition-colors flex items-center gap-1.5"
             onClick={() => {
               const csv = buildResultsCsv(auction);
@@ -171,8 +293,41 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           >
             <RefreshCw size={14} /> Reset
           </button>
+          <button
+            className="px-3.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-700/50 text-xs font-bold text-rose-300 transition-colors flex items-center gap-1.5"
+            onClick={handlePurgeData}
+            title="DPDP compliance: Permanently erase this room and all personal data"
+          >
+            <Trash2 size={14} /> Purge
+          </button>
         </div>
       </header>
+
+      {/* AUCTION COMPLETED BANNER */}
+      {auction.status === 'completed' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-5 rounded-2xl bg-purple-950/80 border-2 border-purple-500/60 text-purple-100 backdrop-blur-xl flex items-center justify-between shadow-xl"
+        >
+          <div className="flex items-center gap-3">
+            <Flag className="text-purple-400" size={24} />
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-purple-200">Auction Finalized &amp; Completed</h2>
+              <p className="text-xs text-purple-300/80 mt-0.5">All bidding operations are locked. You can export results CSV or review final rosters below.</p>
+            </div>
+          </div>
+          <button
+            className="px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 text-xs font-bold shadow-lg"
+            onClick={() => {
+              const csv = buildResultsCsv(auction);
+              downloadTextFile(`${(auction.name || 'auction').replace(/[^a-z0-9]+/gi, '-')}-results.csv`, csv);
+            }}
+          >
+            Download Final Rosters
+          </button>
+        </motion.div>
+      )}
 
       {/* RTM PENDING ALERT */}
       {auction.rtmState?.pending && (
@@ -215,12 +370,20 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             <h2 className="text-lg font-black text-white flex items-center gap-2">
               Player Pool <span className="text-xs font-mono text-amber-400">({availablePlayers.length})</span>
             </h2>
-            <button
-              className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center gap-1 transition-colors"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload size={12} /> Import CSV
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors"
+                onClick={() => setShowAddPlayerModal(true)}
+              >
+                <Plus size={12} /> Add
+              </button>
+              <button
+                className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center gap-1 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={12} /> CSV
+              </button>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -232,44 +395,99 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           {uploadMsg && <div className="text-xs text-amber-400 mb-3">{uploadMsg}</div>}
 
           <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
-            {availablePlayers.map((p) => (
-              <div
-                key={p.id}
-                className="p-3 rounded-2xl bg-slate-950/60 border border-[rgba(255,255,255,0.05)] hover:border-amber-500/30 transition-all flex flex-col gap-2"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold text-sm text-slate-100">{p.name}</div>
-                    <div className="text-[10px] text-slate-400 font-semibold">{p.role} · Base {p.basePrice} L</div>
+            {availablePlayers.map((p) => {
+              const isEditing = editingPlayerId === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className="p-3 rounded-2xl bg-slate-950/60 border border-[rgba(255,255,255,0.05)] hover:border-amber-500/30 transition-all flex flex-col gap-2"
+                >
+                  {isEditing ? (
+                    <div className="flex flex-col gap-2 p-1">
+                      <input
+                        className="text-xs bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white outline-none"
+                        value={editPlayerForm.name}
+                        onChange={(e) => setEditPlayerForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="Player Name"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400">Base:</span>
+                        <input
+                          type="number"
+                          className="w-16 text-xs bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white outline-none"
+                          value={editPlayerForm.basePrice}
+                          onChange={(e) => setEditPlayerForm((f) => ({ ...f, basePrice: Number(e.target.value) }))}
+                        />
+                        <span className="text-[10px] text-slate-400">L</span>
+                        <button
+                          onClick={() => handleSaveEditPlayer(p.id)}
+                          className="p-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold"
+                          title="Save Changes"
+                        >
+                          <Check size={13} />
+                        </button>
+                        <button
+                          onClick={() => setEditingPlayerId(null)}
+                          className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                          title="Cancel"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-sm text-slate-100">{p.name}</div>
+                        <div className="text-[10px] text-slate-400 font-semibold">{p.role} · Base {p.basePrice} L</div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          onClick={() => handleStartEditPlayer(p)}
+                          title="Edit player"
+                        >
+                          <Edit size={12} />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          onClick={() => handleDeletePlayer(p.id, p.name)}
+                          title="Delete player"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                        <button
+                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md transition-transform hover:scale-105"
+                          disabled={!!auction.activePlayer || auction.status === 'completed'}
+                          onClick={() => {
+                            AIAuctioneer.announceNewPlayer(p.name, p.role, p.basePrice);
+                            auction.setActivePlayer(p.id);
+                          }}
+                        >
+                          Select
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      placeholder="CricHeroes profile URL"
+                      className="flex-1 text-[10px] bg-slate-900 border border-[rgba(255,255,255,0.1)] rounded-lg px-2.5 py-1 text-slate-200 outline-none"
+                      defaultValue={p.cricheroesUrl || ''}
+                      onChange={(e) => setCricheroesUrlDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                    />
+                    <button
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      disabled={syncingIds.has(p.id)}
+                      onClick={() => syncOnePlayer(p.id, cricheroesUrlDrafts[p.id] ?? p.cricheroesUrl ?? '')}
+                    >
+                      {syncingIds.has(p.id) || p.cricheroesStatus === 'pending' ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
+                    </button>
                   </div>
-                  <button
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md transition-transform hover:scale-105"
-                    disabled={!!auction.activePlayer}
-                    onClick={() => {
-                      AIAuctioneer.announceNewPlayer(p.name, p.role, p.basePrice);
-                      auction.setActivePlayer(p.id);
-                    }}
-                  >
-                    Select
-                  </button>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    placeholder="CricHeroes profile URL"
-                    className="flex-1 text-[10px] bg-slate-900 border border-[rgba(255,255,255,0.1)] rounded-lg px-2.5 py-1 text-slate-200 outline-none"
-                    defaultValue={p.cricheroesUrl || ''}
-                    onChange={(e) => setCricheroesUrlDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                  />
-                  <button
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
-                    disabled={syncingIds.has(p.id)}
-                    onClick={() => syncOnePlayer(p.id, cricheroesUrlDrafts[p.id] ?? p.cricheroesUrl ?? '')}
-                  >
-                    {syncingIds.has(p.id) || p.cricheroesStatus === 'pending' ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {availablePlayers.length === 0 && (
               <div className="text-center text-xs text-slate-500 p-8">No players left in pool. All players auctioned!</div>
             )}
@@ -390,6 +608,160 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           <CopyRow label="OBS Broadcast Overlay" value={broadcastLink} />
         </div>
       </div>
+
+      {/* TEAM LINKS MODAL */}
+      <AnimatePresence>
+        {showTeamLinksModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-2xl w-full shadow-2xl flex flex-col max-h-[85vh]"
+            >
+              <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Users className="text-amber-400" size={20} />
+                  <h3 className="text-lg font-black text-white">Franchise Team Bidder Links</h3>
+                </div>
+                <button
+                  onClick={() => setShowTeamLinksModal(false)}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-400 mb-4">
+                Share these private URLs with each team captain. Each link includes their capability token for placing bids:
+              </p>
+
+              {teamLinksLoading ? (
+                <div className="py-12 flex justify-center items-center text-slate-400 gap-2">
+                  <Loader2 className="animate-spin" size={20} /> Loading franchise links...
+                </div>
+              ) : (
+                <div className="overflow-y-auto space-y-3 flex-1 pr-1">
+                  {teamLinks.map((t) => {
+                    const teamUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}&role=team&token=${t.token}&teamId=${t.id}`;
+                    return (
+                      <div key={t.id} className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-white">{t.name} ({t.code})</span>
+                          <span className="font-mono text-emerald-400">Purse: {t.purse} L</span>
+                        </div>
+                        <CopyRow label="Bidder Link" value={teamUrl} />
+                      </div>
+                    );
+                  })}
+                  {teamLinks.length === 0 && (
+                    <div className="text-center text-xs text-slate-500 py-8">No teams found for this room.</div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ADD MANUAL PLAYER MODAL */}
+      <AnimatePresence>
+        {showAddPlayerModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Plus className="text-amber-400" size={20} />
+                  <h3 className="text-lg font-black text-white">Add Player to Auction Pool</h3>
+                </div>
+                <button
+                  onClick={() => setShowAddPlayerModal(false)}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddManualPlayer} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Player Name *</label>
+                  <input
+                    required
+                    value={addPlayerForm.name}
+                    onChange={(e) => setAddPlayerForm((f) => ({ ...f, name: e.target.value }))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-amber-400"
+                    placeholder="e.g. Virat Kohli"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Role</label>
+                    <select
+                      value={addPlayerForm.role}
+                      onChange={(e) => setAddPlayerForm((f) => ({ ...f, role: e.target.value as any }))}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    >
+                      <option value="Batsman">Batsman</option>
+                      <option value="Bowler">Bowler</option>
+                      <option value="All-Rounder">All-Rounder</option>
+                      <option value="Wicketkeeper">Wicketkeeper</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Base Price (Lakhs) *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={addPlayerForm.basePrice}
+                      onChange={(e) => setAddPlayerForm((f) => ({ ...f, basePrice: Number(e.target.value) }))}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Previous Team Code (for RTM)</label>
+                  <input
+                    value={addPlayerForm.previousTeamCode}
+                    onChange={(e) => setAddPlayerForm((f) => ({ ...f, previousTeamCode: e.target.value.toUpperCase() }))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    placeholder="e.g. RCB, CSK, MI"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Photo URL (Optional)</label>
+                  <input
+                    value={addPlayerForm.photoUrl}
+                    onChange={(e) => setAddPlayerForm((f) => ({ ...f, photoUrl: e.target.value }))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPlayerModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider"
+                  >
+                    Add Player
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

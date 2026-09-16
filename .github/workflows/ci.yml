@@ -1,0 +1,70 @@
+name: CI & Quality Gate
+
+on:
+  push:
+    branches: [main, master, 'feat/**']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  audit-and-typecheck:
+    name: Audit & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Production Dependency Security Audit
+        run: npm audit --omit=dev
+      - name: Build & Typecheck (Client & Server)
+        run: npm run build
+
+  test-suite:
+    name: Test Suite & Recovery Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Vitest Suite (Unit, Protocol, Recovery, Hooks)
+        run: npm test
+      - name: Verify Backup & Restore Procedures
+        run: |
+          mkdir -p data
+          DATA_DIR=data node -e "
+            const db = require('./server/dist/db');
+            db.createRoom({
+              roomId: 'ci_test',
+              name: 'CI Room',
+              adminToken: 'admin',
+              rules: { timerSeconds: 15, rtmEnabled: false, incrementTiers: [] },
+              teams: [{ id: 't1', name: 'Team 1', code: 'T1', purse: 100, originalPurse: 100, rtmCards: 0, rosterIds: [], token: 'tok' }],
+              players: [{ id: 'p1', name: 'Player 1', role: 'Batsman', basePrice: 20, status: 'available' }]
+            });
+          "
+          DATA_DIR=data node ops/backup/backup.js
+          DATA_DIR=data node ops/restore/restore.js
+
+  docker-verification:
+    name: Docker Multi-Stage Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: cricket-auction-platform:ci

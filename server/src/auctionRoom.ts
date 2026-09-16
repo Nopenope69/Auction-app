@@ -38,10 +38,11 @@ export class AuctionRoom {
 
   private timer: number;
   private timerActive = false;
+  private deadlineAt: number | null = null;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   private rtmState: RtmState | null = null;
-  private undoStack: string[] = []; // in-memory only, capped at 3 - see PRD note below
+  private undoStack: string[] = [];
 
   private listeners: Set<() => void> = new Set();
 
@@ -58,10 +59,19 @@ export class AuctionRoom {
     this.currentBidderId = snapshot.runtime.currentBidderId;
     this.timer = snapshot.runtime.timer;
     this.rtmState = snapshot.runtime.rtmState;
-    // Deliberately do NOT restore timerActive=true from disk: if the process
-    // died mid-countdown we don't want a phantom timer resuming with no one
-    // watching it expire correctly. Admin has to press Start again after a
-    // real crash recovery - a visible, safe default beats a silent one.
+    this.deadlineAt = snapshot.runtime.deadlineAt || null;
+    if (snapshot.runtime.undoStack && Array.isArray(snapshot.runtime.undoStack)) {
+      this.undoStack = snapshot.runtime.undoStack;
+    }
+  }
+
+  isTimerActive(): boolean {
+    return this.timerActive;
+  }
+
+  destroy() {
+    this.stopTimer();
+    this.listeners.clear();
   }
 
   onChange(cb: () => void) {
@@ -83,7 +93,9 @@ export class AuctionRoom {
       currentBidderId: this.currentBidderId,
       timer: this.timer,
       timerActive: this.timerActive,
+      deadlineAt: this.deadlineAt,
       rtmState: this.rtmState,
+      undoStack: this.undoStack,
     });
   }
 
@@ -105,6 +117,7 @@ export class AuctionRoom {
       currentBidderId: this.currentBidderId,
       biddingLog: this.biddingLog,
       rtmState: this.rtmState,
+      status: this.status,
     });
     this.undoStack.push(snap);
     if (this.undoStack.length > 3) this.undoStack.shift();
@@ -165,6 +178,7 @@ export class AuctionRoom {
       highestBidder: this.currentBidderId,
       timer: this.timer,
       timerActive: this.timerActive,
+      deadlineAt: this.deadlineAt,
       rtmState: this.rtmState,
       teams,
       players: Object.values(this.players),
@@ -175,6 +189,7 @@ export class AuctionRoom {
   }
 
   setActivePlayer(playerId: string): boolean {
+    if (this.status === 'completed') return false;
     const player = this.players[playerId];
     if (!player || player.status !== 'available') return false;
 
@@ -192,26 +207,36 @@ export class AuctionRoom {
   }
 
   placeBid(teamId: string, customAmount?: number): boolean {
-    if (!this.activePlayerId || this.rtmState?.pending) return false;
+    if (this.status === 'completed' || !this.activePlayerId || this.rtmState?.pending) return false;
 
     const player = this.players[this.activePlayerId];
     const team = this.teams[teamId];
     if (!player || !team || player.status !== 'available') return false;
     if (this.currentBidderId === teamId) return false; // can't bid against yourself
 
-    let bidAmount = customAmount;
-    if (!bidAmount) {
+    let bidAmount: number;
+    if (customAmount !== undefined && customAmount !== null) {
+      const num = Number(customAmount);
+      if (isNaN(num) || !isFinite(num) || num <= 0) return false;
+      if (this.currentBid === 0) {
+        if (num < player.basePrice) return false;
+      } else {
+        if (num <= this.currentBid) return false;
+      }
+      bidAmount = num;
+    } else {
       bidAmount = this.currentBid === 0 ? player.basePrice : this.currentBid + this.incrementFor(this.currentBid);
     }
 
-    if (this.currentBid > 0 && bidAmount <= this.currentBid) return false;
-    if (this.currentBid === 0 && bidAmount < player.basePrice) return false;
     if (team.purse < bidAmount) return false;
 
     this.pushUndoSnapshot();
     this.currentBid = bidAmount;
     this.currentBidderId = teamId;
     this.timer = this.rules.timerSeconds;
+    if (this.timerActive) {
+      this.deadlineAt = Date.now() + this.rules.timerSeconds * 1000;
+    }
 
     const entry: BidLogEntry = {
       id: randomId(),
@@ -231,12 +256,15 @@ export class AuctionRoom {
   }
 
   startTimer() {
-    if (this.timerActive || !this.activePlayerId || this.rtmState?.pending) return;
+    if (this.status === 'completed' || this.timerActive || !this.activePlayerId || this.rtmState?.pending) return;
     this.timerActive = true;
+    this.deadlineAt = Date.now() + this.timer * 1000;
     this.timerInterval = setInterval(() => {
-      if (this.timer > 0) {
-        this.timer -= 1;
-        this.persist();
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((this.deadlineAt! - now) / 1000));
+      this.timer = remaining;
+      if (remaining > 0) {
+        db.updateRoomTimer(this.roomId, remaining, this.deadlineAt);
         this.emit();
       } else {
         this.stopTimer();
@@ -247,12 +275,16 @@ export class AuctionRoom {
   }
 
   pauseTimer() {
+    if (this.timerActive && this.deadlineAt) {
+      this.timer = Math.max(0, Math.ceil((this.deadlineAt - Date.now()) / 1000));
+    }
     this.stopTimer();
     this.commit();
   }
 
   private stopTimer() {
     this.timerActive = false;
+    this.deadlineAt = null;
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
@@ -265,7 +297,7 @@ export class AuctionRoom {
   }
 
   markSold(): boolean {
-    if (!this.activePlayerId) return false;
+    if (this.status === 'completed' || !this.activePlayerId) return false;
     const player = this.players[this.activePlayerId];
     if (!player || player.status !== 'available') return false;
     if (!this.currentBidderId) return this.markUnsold();
@@ -320,7 +352,7 @@ export class AuctionRoom {
   }
 
   markUnsold(): boolean {
-    if (!this.activePlayerId) return false;
+    if (this.status === 'completed' || !this.activePlayerId) return false;
     const player = this.players[this.activePlayerId];
     if (!player || player.status !== 'available') return false;
 
@@ -347,14 +379,19 @@ export class AuctionRoom {
   }
 
   exerciseRtm(accept: boolean): boolean {
-    if (!this.rtmState?.pending) return false;
-    this.pushUndoSnapshot();
+    if (this.status === 'completed' || !this.rtmState?.pending) return false;
     const rtm = this.rtmState;
     const player = this.players[rtm.playerId];
     const bidderTeam = this.teams[rtm.highestBidderId];
     const rtmTeam = this.teams[rtm.rtmTeamId];
     if (!player || !bidderTeam || !rtmTeam) return false;
 
+    // Critical invariant: retaining team must afford highest bid
+    if (accept && rtmTeam.purse < rtm.highestBid) {
+      return false;
+    }
+
+    this.pushUndoSnapshot();
     const winner = accept ? rtmTeam : bidderTeam;
     player.status = 'sold';
     player.soldPrice = rtm.highestBid;
@@ -399,8 +436,22 @@ export class AuctionRoom {
     this.currentBidderId = snap.currentBidderId;
     this.biddingLog = snap.biddingLog;
     this.rtmState = snap.rtmState;
+    this.status = snap.status || 'live';
     this.timer = this.rules.timerSeconds;
     this.timerActive = false;
+    this.deadlineAt = null;
+
+    // Synchronize SQLite bid_events so undone actions never reappear in historical log
+    db.revertBidEventsToSnapshot(this.roomId, this.biddingLog.map((e) => e.id));
+
+    this.commit();
+    return true;
+  }
+
+  endAuction(): boolean {
+    if (this.status === 'completed') return false;
+    this.stopTimer();
+    this.status = 'completed';
     this.commit();
     return true;
   }
@@ -409,7 +460,7 @@ export class AuctionRoom {
     this.stopTimer();
     Object.values(this.teams).forEach((t) => {
       t.purse = t.originalPurse;
-      t.rtmCards = 3;
+      t.rtmCards = this.rules.rtmEnabled ? 3 : 0;
     });
     Object.values(this.players).forEach((p) => {
       p.status = 'available';
@@ -423,13 +474,55 @@ export class AuctionRoom {
     this.rtmState = null;
     this.timer = this.rules.timerSeconds;
     this.timerActive = false;
+    this.deadlineAt = null;
     this.undoStack = [];
     this.status = 'setup';
     db.resetRoom(this.roomId);
     this.emit();
+  }
+
+  // Admin CRUD methods on active room
+  addManualPlayer(player: Player): boolean {
+    if (this.players[player.id]) return false;
+    this.players[player.id] = player;
+    db.addManualPlayer(this.roomId, player);
+    this.emit();
+    return true;
+  }
+
+  updatePlayer(playerId: string, updates: Partial<Player>): boolean {
+    const player = this.players[playerId];
+    if (!player) return false;
+    Object.assign(player, updates);
+    db.updatePlayerRecord(this.roomId, playerId, updates);
+    this.emit();
+    return true;
+  }
+
+  deletePlayer(playerId: string): boolean {
+    const player = this.players[playerId];
+    if (!player || player.status !== 'available' || this.activePlayerId === playerId) return false;
+    delete this.players[playerId];
+    db.deletePlayerRecord(this.roomId, playerId);
+    this.emit();
+    return true;
+  }
+
+  updateTeam(teamId: string, updates: { name?: string; purse?: number }): boolean {
+    const team = this.teams[teamId];
+    if (!team) return false;
+    if (updates.name) team.name = updates.name.trim();
+    if (updates.purse !== undefined) {
+      team.purse = updates.purse;
+      team.originalPurse = updates.purse;
+    }
+    db.updateTeamRecord(this.roomId, teamId, updates);
+    this.emit();
+    return true;
   }
 }
 
 function randomId(): string {
   return Math.random().toString(36).slice(2, 9);
 }
+

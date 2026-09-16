@@ -11,8 +11,9 @@ import { AIAuctioneer } from '../components/AIAuctioneer';
 // rewritten to speak this hook's protocol instead of the other way around,
 // since this hook's shape is what every page component already consumes.
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'unauthorized' | 'not_found';
 export type Role = 'admin' | 'team' | 'spectator';
+
 
 export interface Player {
   id: string;
@@ -102,6 +103,7 @@ export interface AuctionState {
   biddingLog: BidLogEntry[];
   timer: number;
   timerActive: boolean;
+  deadlineAt?: number | null;
   rtmState: RtmState | null;
   teams: Team[];
   players: Player[];
@@ -216,12 +218,24 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      if (event.code === 4001) {
+        setConnectionStatus('unauthorized');
+        setLastError({
+          message: 'Access Denied: Invalid or unauthorized token. Please check your private link.',
+          id: Date.now(),
+        });
+        return;
+      }
+      if (event.code === 4004) {
+        setConnectionStatus('not_found');
+        setLastError({
+          message: 'Auction Not Found: This auction does not exist or has been deleted.',
+          id: Date.now(),
+        });
+        return;
+      }
       setConnectionStatus('disconnected');
-      // Auto-reconnect: on reconnect the server always sends a full SYNC
-      // snapshot (see server/src/index.ts connection handler), so a dropped
-      // connection on flaky ground WiFi self-heals instead of silently
-      // going stale.
       reconnectTimer.current = setTimeout(connect, 2500);
     };
     ws.onerror = () => ws.close();
@@ -276,5 +290,7 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
     undoLastAction: () => send({ type: 'UNDO_ACTION' }),
     exerciseRtm: (accept: boolean) => send({ type: 'EXERCISE_RTM', accept }),
     resetAuction: () => send({ type: 'RESET' }),
+    endAuction: () => send({ type: 'END_AUCTION' }),
   };
 };
+

@@ -50,7 +50,8 @@ export function computeAuctionDerived(auction: AuctionState, teamId?: string | n
   const tiers = auction.rules.incrementTiers;
   const tier = tiers.find((t) => effectiveBid < t.upTo);
   const nextIncrement = tier ? tier.increment : tiers.length > 0 ? tiers[tiers.length - 1].increment : 5;
-  const nextBidAmount = effectiveBid + nextIncrement;
+  const nextBidAmount = auction.currentBid === 0 ? effectiveBid : effectiveBid + nextIncrement;
+
 
   const team = teamId != null ? auction.teams.find((t) => t.id === teamId) : undefined;
   const purse = team ? team.purse : null;
@@ -59,7 +60,7 @@ export function computeAuctionDerived(auction: AuctionState, teamId?: string | n
     ? Math.min(100, Math.max(0, ((team.originalPurse - team.purse) / (team.originalPurse || 1)) * 100))
     : null;
   const canAfford = team ? team.purse >= nextBidAmount : null;
-  const isBidDisabled = team ? isHighestBidder || !canAfford || !auction.activePlayer : null;
+  const isBidDisabled = team ? isHighestBidder || !canAfford || !auction.activePlayer || auction.status === 'completed' : null;
 
   return {
     effectiveBid,
@@ -79,6 +80,6 @@ export function useAuctionDerived(auction: AuctionState, teamId?: string | null)
   return useMemo(
     () => computeAuctionDerived(auction, teamId),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [auction.currentBid, auction.activePlayer, auction.teams, auction.highestBidder, auction.rules.incrementTiers, teamId]
+    [auction.currentBid, auction.activePlayer, auction.teams, auction.highestBidder, auction.rules.incrementTiers, auction.status, teamId]
   );
 }

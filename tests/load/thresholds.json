@@ -1,0 +1,9 @@
+{
+  "thresholds": {
+    "http_req_duration": ["p(95)<150", "p(99)<300"],
+    "http_req_failed": ["rate<0.01"],
+    "ws_connecting": ["p(95)<200"],
+    "ws_session_duration": ["p(95)>1000"],
+    "checks": ["rate>0.99"]
+  }
+}

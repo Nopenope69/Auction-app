@@ -1,0 +1,33 @@
+services:
+  auction-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cricket-auction-platform:latest
+    container_name: cricket-auction-platform
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATA_DIR=/app/data
+      - CORS_ALLOWED_ORIGINS=http://localhost:3001
+      - ENABLE_CRICHEROES=false
+    volumes:
+      - auction-data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3001/readyz').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\""]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  auction-data:
+    name: cricket-auction-data
