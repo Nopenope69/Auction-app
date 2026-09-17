@@ -95,7 +95,7 @@ export const SpotlightReveal: React.FC<SpotlightRevealProps> = ({
               style={{
                 width: '90px',
                 height: '4px',
-                background: 'linear-gradient(90deg, #015186, #c2a365)',
+                background: 'linear-gradient(90deg, #0047ab, #82c8e5)',
                 borderRadius: '2px',
                 marginBottom: '1.5rem',
               }}
@@ -105,7 +105,7 @@ export const SpotlightReveal: React.FC<SpotlightRevealProps> = ({
               {title}
             </h1>
 
-            <p className="text-sky-300 text-sm sm:text-base font-medium mt-3 mb-8 max-w-lg">
+            <p className="text-[var(--accent-sky)] text-sm sm:text-base font-medium mt-3 mb-8 max-w-lg">
               {subtitle}
             </p>
 
@@ -115,13 +115,13 @@ export const SpotlightReveal: React.FC<SpotlightRevealProps> = ({
                 {teams.map((t) => (
                   <div
                     key={t.id}
-                    className="p-4 rounded-2xl bg-[#1f2937]/90 border border-sky-500/30 flex flex-col items-center shadow-xl"
+                    className="p-4 rounded-[16px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex flex-col items-center shadow-xl"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-slate-900 border border-sky-400/40 flex items-center justify-center font-mono font-black text-amber-400 text-lg mb-2">
+                    <div className="w-12 h-12 rounded-[10px] bg-[var(--bg-base)] border border-[var(--border-prominent)] flex items-center justify-center font-mono font-black text-[var(--accent-sky)] text-lg mb-2">
                       {t.code}
                     </div>
-                    <span className="text-white font-bold text-xs truncate max-w-[120px]">{t.name}</span>
-                    <span className="font-mono text-xs text-sky-400 font-semibold mt-1">{t.purse}L</span>
+                    <span className="text-[var(--text-primary)] font-bold text-xs truncate max-w-[120px]">{t.name}</span>
+                    <span className="font-mono text-xs text-[var(--accent-sky)] font-semibold mt-1">{t.purse}L</span>
                   </div>
                 ))}
               </div>
@@ -132,7 +132,7 @@ export const SpotlightReveal: React.FC<SpotlightRevealProps> = ({
               style={{
                 width: '90px',
                 height: '4px',
-                background: 'linear-gradient(90deg, #c2a365, #015186)',
+                background: 'linear-gradient(90deg, #82c8e5, #0047ab)',
                 borderRadius: '2px',
                 marginTop: '1rem',
               }}

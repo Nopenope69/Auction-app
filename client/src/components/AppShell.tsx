@@ -71,7 +71,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   const cycleTheme = () => {
     const next: ThemeMode =
-      theme === 'telemetry' ? 'pear' : theme === 'pear' ? 'heritage' : 'telemetry';
+      theme === 'cobalt' ? 'telemetry' : theme === 'telemetry' ? 'pear' : 'cobalt';
     setTheme(next);
     applyTheme(next);
   };
@@ -147,10 +147,10 @@ export const AppShell: React.FC<AppShellProps> = ({
           {/* Left: Brand / Tournament & Room Badge */}
           <div className="flex items-center gap-4 min-w-0">
             <div className="flex items-center gap-3 shrink-0">
-              <div className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-prominent)] flex items-center justify-center text-[var(--accent-sky)] shadow-sm">
                 <Gavel size={16} />
               </div>
-              <span className="font-display font-semibold text-sm text-[#f2f1ed] tracking-tight hidden sm:inline truncate max-w-[220px]" title={name || 'Auction'}>
+              <span className="font-display font-bold text-sm text-[var(--text-primary)] tracking-tight hidden sm:inline truncate max-w-[220px]" title={name || 'Auction'}>
                 {name || 'Cricket Auction'}
               </span>
             </div>
@@ -158,15 +158,15 @@ export const AppShell: React.FC<AppShellProps> = ({
             {/* Room Code Badge */}
             <button
               onClick={handleCopyRoom}
-              className="px-3 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-sky-500/40 text-xs font-mono font-bold text-[#f2f1ed] flex items-center gap-1.5 transition-colors focus-ring"
+              className="px-3 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-focus)] text-xs font-mono font-bold text-[var(--text-primary)] flex items-center gap-1.5 transition-colors focus-ring"
               title="Click to copy Room Code"
             >
-              <span className="text-[#8c8a82] text-[10px] font-sans font-medium uppercase">Room:</span>
-              <span className="text-sky-400">{roomId}</span>
-              {copiedRoom ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} className="text-[#8c8a82]" />}
+              <span className="text-[var(--text-secondary)] text-[10px] font-sans font-medium uppercase">Room:</span>
+              <span className="text-[var(--accent-sky)]">{roomId}</span>
+              {copiedRoom ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} className="text-[var(--text-secondary)]" />}
             </button>
 
-            {/* WebSocket Status Indicator */}
+            {/* Connection Status Indicator */}
             <div
               className={`hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                 connectionStatus === 'connected'
@@ -188,15 +188,15 @@ export const AppShell: React.FC<AppShellProps> = ({
             <span
               className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border ${
                 status === 'live'
-                  ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
+                  ? 'bg-[var(--accent-primary)]/20 border-[var(--border-prominent)] text-[var(--accent-sky)]'
                   : status === 'paused'
-                  ? 'bg-slate-800 border-amber-500/30 text-amber-400'
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
                   : status === 'completed'
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                  : 'bg-slate-800 border-slate-700 text-slate-400'
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'
               }`}
             >
-              {status === 'live' && <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />}
+              {status === 'live' && <span className="w-2 h-2 rounded-full bg-[var(--accent-sky)] animate-ping" />}
               {status === 'completed' && <Award size={13} className="text-emerald-400" />}
               <span>{status === 'live' ? 'Live Bidding' : status}</span>
             </span>
@@ -207,42 +207,42 @@ export const AppShell: React.FC<AppShellProps> = ({
             {/* Theme Switcher Pill */}
             <button
               onClick={cycleTheme}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] hover:bg-slate-800 border border-[var(--border-subtle)] hover:border-[var(--accent-primary)]/50 text-xs font-mono transition-colors focus-ring"
-              title={`Active Theme: ${theme === 'telemetry' ? 'F1 Pit-Wall Telemetry' : theme === 'pear' ? 'Pear.no' : "Lord's Heritage"} (Click to cycle)`}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-subtle)] border border-[var(--border-subtle)] hover:border-[var(--accent-sky)]/50 text-xs font-mono transition-colors focus-ring"
+              title={`Active Theme: ${theme === 'cobalt' ? 'Cobalt Sky' : theme === 'telemetry' ? 'F1 Telemetry' : 'Pear.no'} (Click to cycle)`}
               aria-label="Toggle Theme"
             >
               <span
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{
                   backgroundColor:
-                    theme === 'telemetry' ? '#d4ff00' : theme === 'pear' ? '#38bdf8' : '#d4af37',
+                    theme === 'cobalt' ? '#0047AB' : theme === 'telemetry' ? '#d4ff00' : '#38bdf8',
                 }}
               />
               <span className="text-[11px] font-semibold text-[var(--text-primary)]">
-                {theme === 'telemetry' ? 'F1 Telemetry' : theme === 'pear' ? 'Pear.no' : "Lord's"}
+                {theme === 'cobalt' ? 'Cobalt Sky' : theme === 'telemetry' ? 'F1 Telemetry' : 'Pear.no'}
               </span>
             </button>
 
             {/* Design & Motion Lab Link */}
             <a
               href="/?view=preview"
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-sky-500/40 text-xs text-[#8c8a82] hover:text-sky-300 transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--accent-sky)]/40 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
               title="Open Design & Motion Lab"
             >
-              <Orbit size={13} className="text-sky-400" />
+              <Orbit size={13} className="text-[var(--accent-sky)]" />
               <span className="font-mono text-[11px]">Lab</span>
             </a>
 
             {/* Role Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs font-semibold text-[#f2f1ed]">
+            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-primary)]">
               {role === 'admin' ? (
                 <>
-                  <Shield size={13} className="text-sky-400" />
+                  <Shield size={13} className="text-[var(--accent-sky)]" />
                   <span>Auctioneer</span>
                 </>
               ) : role === 'team' ? (
                 <>
-                  <Users size={13} className="text-sky-400" />
+                  <Users size={13} className="text-[var(--accent-sky)]" />
                   <span>{teamName ? `${teamName} (${teamCode})` : 'Bidder'}</span>
                 </>
               ) : (
@@ -310,74 +310,74 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Main Screen Content */}
       <main className="flex-1 flex flex-col">{children}</main>
 
-      {/* KEYBOARD SHORTCUTS MODAL (Boxy 16px geometry) */}
+      {/* KEYBOARD SHORTCUTS MODAL */}
       <AnimatePresence>
         {showShortcutsModal && (
-          <div className="fixed inset-0 z-50 bg-[#0b0a09]/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-[var(--bg-base)]/85 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111827] border border-[var(--border-subtle)] rounded-[16px] p-6 max-w-md w-full shadow-2xl"
+              className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-6 max-w-md w-full shadow-2xl"
             >
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-[var(--border-subtle)]">
-                <div className="flex items-center gap-2 text-white font-bold text-base font-display">
-                  <Keyboard size={18} className="text-sky-400" />
-                  <span>Auctioneer Keyboard Hotkeys</span>
+                <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-base font-display">
+                  <Keyboard size={18} className="text-[var(--accent-sky)]" />
+                  <span>Auctioneer Keyboard Shortcuts</span>
                 </div>
                 <button
                   onClick={() => setShowShortcutsModal(false)}
-                  className="p-1 rounded-lg hover:bg-slate-800 text-[#8c8a82] hover:text-white"
+                  className="p-1 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[#0b0a09] border border-[var(--border-subtle)]">
-                  <span className="text-[#f2f1ed] font-medium">Start / Pause Countdown Timer</span>
-                  <kbd className="px-2.5 py-1 rounded-lg bg-[#1f2937] border border-slate-700 font-mono font-bold text-sky-300">Space</kbd>
+                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <span className="text-[var(--text-primary)] font-medium">Start / Pause Countdown Timer</span>
+                  <kbd className="px-2.5 py-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] font-mono font-bold text-[var(--accent-sky)]">Space</kbd>
                 </div>
-                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[#0b0a09] border border-[var(--border-subtle)]">
-                  <span className="text-[#f2f1ed] font-medium">Mark Active Player SOLD</span>
-                  <kbd className="px-2.5 py-1 rounded-lg bg-[#1f2937] border border-slate-700 font-mono font-bold text-emerald-300">S</kbd>
+                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <span className="text-[var(--text-primary)] font-medium">Mark Active Player SOLD</span>
+                  <kbd className="px-2.5 py-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] font-mono font-bold text-emerald-300">S</kbd>
                 </div>
-                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[#0b0a09] border border-[var(--border-subtle)]">
-                  <span className="text-[#f2f1ed] font-medium">Mark Active Player UNSOLD</span>
-                  <kbd className="px-2.5 py-1 rounded-lg bg-[#1f2937] border border-slate-700 font-mono font-bold text-rose-300">U</kbd>
+                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <span className="text-[var(--text-primary)] font-medium">Mark Active Player UNSOLD</span>
+                  <kbd className="px-2.5 py-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] font-mono font-bold text-rose-300">U</kbd>
                 </div>
-                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[#0b0a09] border border-[var(--border-subtle)]">
-                  <span className="text-[#f2f1ed] font-medium">Undo Last Action (Up to 3 deep)</span>
-                  <kbd className="px-2.5 py-1 rounded-lg bg-[#1f2937] border border-slate-700 font-mono font-bold text-slate-200">Z</kbd>
+                <div className="flex justify-between items-center p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <span className="text-[var(--text-primary)] font-medium">Undo Last Action (Up to 3 deep)</span>
+                  <kbd className="px-2.5 py-1 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] font-mono font-bold text-[var(--text-secondary)]">Z</kbd>
                 </div>
               </div>
 
-              <p className="text-[11px] text-[#8c8a82] mt-4 leading-relaxed">
-                * Note: Hotkeys are strictly guarded and suspended when typing in any input field or modal.
+              <p className="text-[11px] text-[var(--text-secondary)] mt-4 leading-relaxed">
+                * Note: Shortcuts are locked when typing in any input field.
               </p>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* SHARE LINKS MODAL (Boxy 16px geometry) */}
+      {/* SHARE LINKS MODAL */}
       <AnimatePresence>
         {showShareModal && (
-          <div className="fixed inset-0 z-50 bg-[#0b0a09]/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-[var(--bg-base)]/85 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111827] border border-[var(--border-subtle)] rounded-[16px] p-6 max-w-lg w-full shadow-2xl"
+              className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-6 max-w-lg w-full shadow-2xl"
             >
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-[var(--border-subtle)]">
-                <div className="flex items-center gap-2 text-white font-bold text-base font-display">
-                  <Link2 size={18} className="text-sky-400" />
-                  <span>Public &amp; Stream Broadcast Links</span>
+                <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-base font-display">
+                  <Link2 size={18} className="text-[var(--accent-sky)]" />
+                  <span>Public &amp; Broadcast Links</span>
                 </div>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="p-1 rounded-lg hover:bg-slate-800 text-[#8c8a82] hover:text-white"
+                  className="p-1 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
                 >
                   <X size={16} />
                 </button>
@@ -385,11 +385,11 @@ export const AppShell: React.FC<AppShellProps> = ({
 
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-[#8c8a82] font-semibold mb-1">Spectator Arena URL (For fans &amp; live viewing)</label>
+                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Spectator Arena URL (Live fans view)</label>
                   <CopyInput value={spectatorUrl} />
                 </div>
                 <div>
-                  <label className="block text-[#8c8a82] font-semibold mb-1">OBS / Stream Broadcast Lower-Third Overlay</label>
+                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">OBS / Broadcast Lower-Third Overlay</label>
                   <CopyInput value={broadcastUrl} />
                 </div>
               </div>
@@ -401,7 +401,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                       setShowShareModal(false);
                       onOpenTeamLinks();
                     }}
-                    className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs flex items-center gap-1.5 focus-ring"
+                    className="px-4 py-2 rounded-xl bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white font-bold text-xs flex items-center gap-1.5 focus-ring"
                   >
                     <Users size={14} /> Open Private Team Links
                   </button>
@@ -422,7 +422,7 @@ const CopyInput: React.FC<{ value: string }> = ({ value }) => {
       <input
         readOnly
         value={value}
-        className="flex-1 bg-[#0b0a09] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-[#f2f1ed] font-mono text-xs outline-none focus:border-sky-400 select-all"
+        className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-mono text-xs outline-none focus:border-[var(--border-focus)] select-all"
         onFocus={(e) => e.target.select()}
       />
       <button
@@ -431,7 +431,7 @@ const CopyInput: React.FC<{ value: string }> = ({ value }) => {
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         }}
-        className="px-3.5 py-2 rounded-xl bg-[#1f2937] hover:bg-slate-700 text-[#f2f1ed] font-semibold transition-colors shrink-0 focus-ring"
+        className="px-3.5 py-2 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold transition-colors shrink-0 focus-ring"
       >
         {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
       </button>

@@ -74,7 +74,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
   if (!activePlayer && upcomingPlayers.length === 0) {
     return (
       <div className="relative w-full max-w-md mx-auto aspect-[3/4] flex flex-col items-center justify-center p-8 text-center rounded-[16px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl">
-        <div className="w-16 h-16 rounded-[14px] bg-[#38bdf8]/10 border border-[#38bdf8]/30 flex items-center justify-center mb-4 text-[#38bdf8] animate-pulse">
+        <div className="w-16 h-16 rounded-[14px] bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)] flex items-center justify-center mb-4 text-[var(--accent-sky,#82C8E5)] animate-pulse">
           <Clock size={32} />
         </div>
         <h3 className="text-xl font-display font-bold text-[var(--text-primary)] mb-1.5">Auction Block Idle</h3>
@@ -125,7 +125,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
             onClick={() => setViewMode('carousel')}
             className={`px-3 py-1 rounded-[8px] text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               viewMode === 'carousel'
-                ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                ? 'bg-[var(--accent-primary)] text-white shadow'
                 : 'text-[var(--text-secondary)] hover:text-[#f2f1ed]'
             }`}
           >
@@ -136,7 +136,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
             onClick={() => setViewMode('card')}
             className={`px-3 py-1 rounded-[8px] text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               viewMode === 'card'
-                ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                ? 'bg-[var(--accent-primary)] text-white shadow'
                 : 'text-[var(--text-secondary)] hover:text-[#f2f1ed]'
             }`}
           >
@@ -171,13 +171,13 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
             {/* Stamps */}
             <motion.div
               style={{ opacity: bidStampOpacity }}
-              className="absolute top-8 left-8 z-30 pointer-events-none border-4 border-[#38bdf8] text-[#38bdf8] font-black text-2xl px-3.5 py-1 rounded-[12px] transform -rotate-12 tracking-wider bg-[var(--bg-base)]/90 backdrop-blur-md"
+              className="absolute top-8 left-8 z-30 pointer-events-none border-4 border-[var(--accent-sky,#82C8E5)] text-[var(--accent-sky,#82C8E5)] font-black text-2xl px-3.5 py-1 rounded-[12px] transform -rotate-12 tracking-wider bg-[var(--bg-base)]/90 backdrop-blur-md"
             >
               BID!
             </motion.div>
             <motion.div
               style={{ opacity: passStampOpacity }}
-              className="absolute top-8 right-8 z-30 pointer-events-none border-4 border-[#ef4444] text-[#ef4444] font-black text-2xl px-3.5 py-1 rounded-[12px] transform rotate-12 tracking-wider bg-[var(--bg-base)]/90 backdrop-blur-md"
+              className="absolute top-8 right-8 z-30 pointer-events-none border-4 border-[var(--status-alert)] text-[var(--status-alert)] font-black text-2xl px-3.5 py-1 rounded-[12px] transform rotate-12 tracking-wider bg-[var(--bg-base)]/90 backdrop-blur-md"
             >
               PASS
             </motion.div>
@@ -198,7 +198,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-surface)] via-transparent to-transparent pointer-events-none" />
 
               <div className="absolute top-4 left-4 z-10">
-                <span className="px-3 py-1 rounded-[8px] text-xs font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[#38bdf8] shadow flex items-center gap-1.5 uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-[8px] text-xs font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--accent-sky,#82C8E5)] shadow flex items-center gap-1.5 uppercase tracking-wider">
                   <Award size={12} />
                   {activePlayer?.role}
                 </span>
@@ -214,7 +214,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
                 <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)]">
                   <span>Leading:</span>
                   {highestBidderTeam ? (
-                    <span className="font-bold text-[#c2a365]">{highestBidderTeam.name}</span>
+                    <span className="font-bold text-[var(--accent-sky,#82C8E5)]">{highestBidderTeam.name}</span>
                   ) : (
                     <span className="italic">Base Price</span>
                   )}
@@ -224,7 +224,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
               <div className="flex justify-between items-center pt-4 border-t border-[var(--border-subtle)]">
                 <div>
                   <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Current Bid</span>
-                  <div className="text-2xl font-black font-mono text-[#38bdf8] tabular-nums">
+                  <div className="text-2xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums">
                     {currentBid} L
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
                     AudioEngine.playBidSound();
                     onBid();
                   }}
-                  className="px-5 py-2.5 rounded-[12px] bg-[#38bdf8] hover:bg-[#0284c7] disabled:opacity-40 text-[#0b0a09] font-black text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-95 focus-ring"
+                  className="px-5 py-2.5 rounded-[12px] bg-[var(--accent-primary)] hover:bg-[#003888] disabled:opacity-40 text-white font-black text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-95 focus-ring"
                 >
                   Place Bid
                 </button>
@@ -244,7 +244,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
 
               {/* Unmistakable Confirmation Boundary on Swipe */}
               {stagedConfirm && (
-                <div className="absolute inset-x-4 bottom-4 z-40 p-3 rounded-[12px] bg-[var(--bg-elevated)] border-2 border-[#38bdf8] shadow-2xl flex items-center justify-between gap-2 animate-in fade-in">
+                <div className="absolute inset-x-4 bottom-4 z-40 p-3 rounded-[12px] bg-[var(--bg-elevated)] border-2 border-[var(--accent-sky,#82C8E5)] shadow-2xl flex items-center justify-between gap-2 animate-in fade-in">
                   <div>
                     <div className="text-xs font-bold text-[var(--text-primary)]">Confirm Bid Placement?</div>
                     <div className="text-[10px] text-[var(--text-secondary)] font-mono">Amount: {currentBid} Lakhs</div>
@@ -258,7 +258,7 @@ export const TinderCardStack: React.FC<TinderCardStackProps> = ({
                         AudioEngine.playBidSound();
                         onBid();
                       }}
-                      className="px-3 py-1.5 rounded-[8px] bg-[#38bdf8] text-[#0b0a09] font-black text-xs transition-colors flex items-center gap-1 focus-ring"
+                      className="px-3 py-1.5 rounded-[8px] bg-[var(--accent-primary)] text-white font-black text-xs transition-colors flex items-center gap-1 focus-ring"
                     >
                       <Check size={12} /> Confirm
                     </button>

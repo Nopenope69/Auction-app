@@ -69,10 +69,10 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
           <div className="w-[90vw] h-[90vh] border-2 border-dashed border-cyan-400/40 flex items-center justify-center">
             {/* Title Safe (80%) */}
             <div className="w-[80vw] h-[80vh] border-2 border-dotted border-amber-400/40 relative">
-              <span className="absolute top-2 left-2 text-[10px] font-mono text-[#38bdf8] uppercase tracking-widest bg-[var(--bg-base)]/90 px-2 py-0.5 rounded-[4px] border border-[var(--border-subtle)]">
+              <span className="absolute top-2 left-2 text-[10px] font-mono text-[var(--accent-sky,#82C8E5)] uppercase tracking-widest bg-[var(--bg-base)]/90 px-2 py-0.5 rounded-[4px] border border-[var(--border-subtle)]">
                 ACTION SAFE (90%)
               </span>
-              <span className="absolute bottom-2 left-2 text-[10px] font-mono text-[#c2a365] uppercase tracking-widest bg-[var(--bg-base)]/90 px-2 py-0.5 rounded-[4px] border border-[var(--border-subtle)]">
+              <span className="absolute bottom-2 left-2 text-[10px] font-mono text-[var(--text-primary)] uppercase tracking-widest bg-[var(--bg-base)]/90 px-2 py-0.5 rounded-[4px] border border-[var(--border-subtle)]">
                 TITLE SAFE (80%)
               </span>
             </div>
@@ -89,7 +89,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
         <div className="bg-[var(--bg-surface)] backdrop-blur-2xl border border-[var(--border-subtle)] rounded-[12px] px-4 py-2 shadow-2xl flex items-center gap-3 text-xs">
           <button
             onClick={() => setShowControls(!showControls)}
-            className="text-[#c2a365] font-bold flex items-center gap-1.5 focus-ring"
+            className="text-[var(--accent-sky,#82C8E5)] font-bold flex items-center gap-1.5 focus-ring"
           >
             <Sliders size={14} />
             <span className="hidden sm:inline">Stream HUD</span>
@@ -105,7 +105,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                   onClick={() => setChromaMode('transparent')}
                   className={`px-2 py-1 rounded-[8px] transition-colors ${
                     chromaMode === 'transparent'
-                      ? 'bg-[#c2a365] text-[#0b0a09] font-black'
+                      ? 'bg-[var(--accent-primary)] text-white font-black'
                       : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
@@ -115,7 +115,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                   onClick={() => setChromaMode('green')}
                   className={`px-2 py-1 rounded-[8px] transition-colors ${
                     chromaMode === 'green'
-                      ? 'bg-[#10b981] text-[#0b0a09] font-black'
+                      ? 'bg-[var(--status-success)] text-[#030712] font-black'
                       : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
@@ -139,7 +139,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
               <button
                 onClick={() => setShowSafeZones(!showSafeZones)}
                 className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                  showSafeZones ? 'bg-[#38bdf8] text-[#0b0a09]' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  showSafeZones ? 'bg-[var(--accent-primary)] text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {showSafeZones ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -150,7 +150,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
               <button
                 onClick={toggleAudio}
                 className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                  audioEnabled ? 'bg-[#10b981] text-[#0b0a09]' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  audioEnabled ? 'bg-[var(--status-success)] text-[#030712]' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {audioEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
@@ -170,9 +170,9 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
             animate={{ opacity: 1, x: 0 }}
             className="bg-[var(--bg-surface)] backdrop-blur-2xl border border-[var(--border-subtle)] rounded-[16px] p-4 w-80 shadow-2xl pointer-events-auto"
           >
-            <div className="text-[11px] font-black uppercase text-[#c2a365] tracking-wider pb-2 mb-2.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <div className="text-[11px] font-black uppercase text-[var(--accent-sky,#82C8E5)] tracking-wider pb-2 mb-2.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Flame size={14} className="text-[#c2a365]" /> Recent Hammer Falls
+                <Flame size={14} className="text-[var(--accent-sky,#82C8E5)]" /> Recent Hammer Falls
               </span>
               <span className="text-[10px] font-mono text-[var(--text-secondary)]">Live</span>
             </div>
@@ -186,8 +186,8 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                   <span
                     className={`font-mono font-bold tabular-nums text-[11px] px-1.5 py-0.5 rounded-[6px] ${
                       e.type === 'unsold'
-                        ? 'bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30'
-                        : 'bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30'
+                        ? 'bg-[var(--status-alert)]/15 text-[var(--status-alert)] border border-[var(--status-alert)]/30'
+                        : 'bg-[var(--status-success)]/15 text-[var(--status-success)] border border-[var(--status-success)]/30'
                     }`}
                   >
                     {e.type === 'unsold' ? 'UNSOLD' : `${e.teamName} · ${e.amount}L`}
@@ -205,11 +205,11 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
           className="bg-[var(--bg-surface)] backdrop-blur-2xl border border-[var(--border-subtle)] rounded-[16px] p-4 w-72 shadow-2xl pointer-events-auto"
         >
           <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-[var(--border-subtle)]">
-            <span className="text-[11px] font-bold uppercase text-[#c2a365] tracking-wider flex items-center gap-1.5">
+            <span className="text-[11px] font-bold uppercase text-[var(--accent-sky,#82C8E5)] tracking-wider flex items-center gap-1.5">
               <Award size={14} /> Team Purses
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)] animate-ping" />
               <span className="text-[10px] font-mono text-[var(--text-secondary)]">{auction.teams.length} Teams</span>
             </span>
           </div>
@@ -226,7 +226,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                   <span className="font-bold text-[var(--text-primary)] truncate">{t.name}</span>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="font-mono font-bold text-[#10b981] tabular-nums">{t.purse}L</span>
+                  <span className="font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums">{t.purse}L</span>
                 </div>
               </div>
             ))}
@@ -245,10 +245,10 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 60, scale: 0.98 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="w-full max-w-6xl mx-auto rounded-[16px] bg-[#0b0a09]/98 backdrop-blur-2xl border-2 border-[#c2a365]/50 p-6 shadow-[0_10px_50px_rgba(0,0,0,0.9)] flex items-center gap-8 relative overflow-hidden z-20"
+              className="w-full max-w-6xl mx-auto rounded-[16px] bg-[#030712]/98 backdrop-blur-2xl border-2 border-[var(--accent-sky,#82C8E5)]/40 p-6 shadow-[0_10px_50px_rgba(0,0,0,0.9)] flex items-center gap-8 relative overflow-hidden z-20"
             >
               {/* Broadcast Studio Ambient Glow */}
-              <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-[#c2a365]/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-[var(--accent-primary)]/20 rounded-full blur-3xl pointer-events-none" />
 
               {/* PLAYER PHOTO FRAME */}
               <div className="w-48 h-48 rounded-[16px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] overflow-hidden shrink-0 shadow-2xl relative">
@@ -268,13 +268,13 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                 )}
                 {/* Role Pill on Image */}
                 <div className="absolute top-2 left-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#c2a365] text-[#0b0a09] uppercase tracking-widest shadow-md">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[var(--accent-primary)] text-white uppercase tracking-widest shadow-md">
                     {auction.activePlayer.role}
                   </span>
                 </div>
                 {auction.activePlayer.cricheroesUrl && (
                   <div className="absolute bottom-2 left-2">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#10b981]/90 text-[#0b0a09] uppercase tracking-wider">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-[var(--status-success)] text-[#030712] uppercase tracking-wider">
                       Verified
                     </span>
                   </div>
@@ -295,7 +295,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                         className={`px-3 py-1 rounded-[12px] font-mono font-black text-sm flex items-center gap-1.5 border ${
                           auction.timer <= 3
                             ? 'bg-rose-500/20 border-rose-500 text-rose-300 animate-pulse'
-                            : 'bg-[#c2a365]/20 border-[#c2a365]/50 text-[#c2a365]'
+                            : 'bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)] text-[var(--accent-sky,#82C8E5)]'
                         }`}
                       >
                         <Clock size={14} />
@@ -306,7 +306,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
 
                   <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-secondary)] font-bold">
                     <span>
-                      Base Price: <span className="text-[#c2a365] font-mono">{auction.activePlayer.basePrice} L</span>
+                      Base Price: <span className="text-[var(--accent-sky,#82C8E5)] font-mono">{auction.activePlayer.basePrice} L</span>
                     </span>
                     {auction.activePlayer.matches != null && (
                       <>
@@ -325,7 +325,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                           className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[8px] px-2.5 py-1 text-center"
                         >
                           <div className="text-[9px] uppercase font-bold text-[var(--text-secondary)]">{label}</div>
-                          <div className="text-xs font-mono font-bold text-[#38bdf8] tabular-nums">{val}</div>
+                          <div className="text-xs font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums">{val}</div>
                         </div>
                       ))}
                     </div>
@@ -338,7 +338,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                     <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
                       Live Highest Bid
                     </div>
-                    <div className="text-5xl font-black font-mono text-[#38bdf8] tabular-nums drop-shadow-[0_0_20px_rgba(56,189,248,0.4)] leading-none mt-1">
+                    <div className="text-5xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums drop-shadow-[0_0_20px_rgba(130,200,229,0.3)] leading-none mt-1">
                       {derived.effectiveBid} <span className="text-2xl font-sans text-[var(--text-secondary)]">Lakhs</span>
                     </div>
                   </div>
@@ -348,9 +348,9 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                       Leading Franchise
                     </div>
                     {highestBidderTeam ? (
-                      <div className="flex items-center justify-end gap-2 bg-[var(--bg-elevated)] border border-[#c2a365]/30 px-3.5 py-1.5 rounded-[12px]">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-ping" />
-                        <span className="text-xl font-bold text-[#c2a365] truncate max-w-[220px]">
+                      <div className="flex items-center justify-end gap-2 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-3.5 py-1.5 rounded-[12px]">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)] animate-ping" />
+                        <span className="text-xl font-bold text-[var(--accent-sky,#82C8E5)] truncate max-w-[220px]">
                           {highestBidderTeam.name}
                         </span>
                         <span className="text-xs font-mono font-bold text-[var(--text-secondary)] px-1.5 py-0.5 rounded-[4px] bg-[var(--bg-base)]">
@@ -358,7 +358,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                         </span>
                       </div>
                     ) : (
-                      <div className="text-sm font-bold text-[#c2a365]/80 italic">
+                      <div className="text-sm font-bold text-[var(--text-secondary)] italic">
                         Waiting for opening bid...
                       </div>
                     )}
@@ -375,15 +375,15 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
               exit={{ opacity: 0, scale: 0.95 }}
               className={`w-full max-w-4xl mx-auto rounded-[16px] backdrop-blur-2xl border-2 p-6 shadow-2xl flex items-center justify-between z-20 ${
                 lastOutcome.type === 'sold' || lastOutcome.type === 'rtm'
-                  ? 'bg-[#0b0a09]/98 border-[#10b981]/70 shadow-[0_0_60px_rgba(16,185,129,0.3)]'
-                  : 'bg-[#0b0a09]/98 border-rose-500/70 shadow-[0_0_60px_rgba(244,63,94,0.3)]'
+                  ? 'bg-[#030712]/98 border-[var(--status-success)]/70 shadow-[0_0_60px_rgba(0,210,132,0.25)]'
+                  : 'bg-[#030712]/98 border-rose-500/70 shadow-[0_0_60px_rgba(244,63,94,0.3)]'
               }`}
             >
               <div className="flex items-center gap-4">
                 <div
                   className={`w-14 h-14 rounded-[12px] flex items-center justify-center text-white ${
                     lastOutcome.type === 'sold' || lastOutcome.type === 'rtm'
-                      ? 'bg-[#10b981]/20 border border-[#10b981]/50 text-[#10b981]'
+                      ? 'bg-[var(--status-success)]/20 border border-[var(--status-success)]/50 text-[var(--status-success)]'
                       : 'bg-rose-500/20 border border-rose-500/50 text-rose-400'
                   }`}
                 >
@@ -407,8 +407,8 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
 
               {lastOutcome.type !== 'unsold' && (
                 <div className="text-right">
-                  <div className="text-sm font-bold text-[#c2a365]">Sold to {lastOutcome.teamName}</div>
-                  <div className="text-4xl font-black font-mono text-[#38bdf8] tabular-nums">
+                  <div className="text-sm font-bold text-[var(--accent-sky,#82C8E5)]">Sold to {lastOutcome.teamName}</div>
+                  <div className="text-4xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums">
                     {lastOutcome.amount} Lakhs
                   </div>
                 </div>
@@ -421,10 +421,10 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
-              className="w-full max-w-3xl mx-auto rounded-[16px] bg-[#0b0a09]/95 backdrop-blur-xl border border-[var(--border-subtle)] px-6 py-4 shadow-2xl flex items-center justify-between z-20"
+              className="w-full max-w-3xl mx-auto rounded-[16px] bg-[#030712]/95 backdrop-blur-xl border border-[var(--border-subtle)] px-6 py-4 shadow-2xl flex items-center justify-between z-20"
             >
               <div className="flex items-center gap-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#c2a365] animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-sky,#82C8E5)] animate-ping" />
                 <div>
                   <div className="text-sm font-display font-bold text-white tracking-wide">
                     {auction.name || 'CRICKET PLAYER AUCTION'}
@@ -432,7 +432,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ roomId, toke
                   <div className="text-xs text-[var(--text-secondary)]">Live Broadcast · Next Contender Coming To Block</div>
                 </div>
               </div>
-              <div className="text-xs font-mono font-bold text-[#c2a365] uppercase tracking-wider bg-[var(--bg-elevated)] border border-[#c2a365]/30 px-3 py-1.5 rounded-[8px]">
+              <div className="text-xs font-mono font-bold text-[var(--accent-sky,#82C8E5)] uppercase tracking-wider bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-3 py-1.5 rounded-[8px]">
                 Intermission
               </div>
             </motion.div>

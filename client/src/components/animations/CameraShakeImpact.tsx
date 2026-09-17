@@ -73,8 +73,8 @@ export const CameraShakeImpact: React.FC<CameraShakeImpactProps> = ({
           }}
           className="p-8 sm:p-10 flex flex-col items-center text-center select-none"
         >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-xs font-mono uppercase tracking-widest mb-3">
-            <Zap size={14} className="text-amber-400 animate-pulse" /> Marquee Lot Calling
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[6px] bg-[var(--accent-primary)]/20 border border-[var(--border-prominent)] text-[var(--accent-sky)] text-xs font-mono uppercase tracking-widest mb-3">
+            <Zap size={14} className="text-[var(--accent-sky)] animate-pulse" /> Marquee Lot Calling
           </div>
 
           <h1 className="text-white text-4xl sm:text-5xl font-black uppercase tracking-wider font-sans m-0">
@@ -86,14 +86,14 @@ export const CameraShakeImpact: React.FC<CameraShakeImpactProps> = ({
             style={{
               width: '80px',
               height: '4px',
-              background: 'linear-gradient(90deg, #015186, #c2a365)',
+              background: 'linear-gradient(90deg, #0047ab, #82c8e5)',
               margin: '1.25rem 0',
               borderRadius: '2px',
             }}
           />
 
-          <p className="text-slate-300 text-sm font-semibold max-w-md m-0">
-            {role} · Base Price <span className="font-mono text-amber-400 font-bold">{basePrice} Lakhs</span>
+          <p className="text-[var(--text-secondary)] text-sm font-semibold max-w-md m-0">
+            {role} · Base Price <span className="font-mono text-[var(--accent-sky)] font-bold">{basePrice} Lakhs</span>
           </p>
         </div>
       )}

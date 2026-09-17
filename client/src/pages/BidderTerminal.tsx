@@ -163,19 +163,19 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
         <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
           {/* Franchise Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[12px] bg-[var(--bg-base)] border border-[#c2a365]/40 flex items-center justify-center font-mono font-black text-[#c2a365] text-lg shadow-inner">
+            <div className="w-12 h-12 rounded-[12px] bg-[var(--bg-base)] border border-[var(--accent-sky,#82C8E5)]/40 flex items-center justify-center font-mono font-black text-[var(--accent-sky,#82C8E5)] text-lg shadow-inner">
               {team?.code || 'TM'}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-display font-bold text-[var(--text-primary)]">{team?.name}</h1>
-                <span className="px-2 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/30 font-mono">
+                <span className="px-2 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-primary)]/20 text-[var(--accent-sky,#82C8E5)] border border-[var(--border-subtle)] font-mono">
                   Cap: {derived.originalPurse} L
                 </span>
               </div>
               <p className="text-xs text-[var(--text-secondary)] font-medium">
                 Signed: <strong className="text-[var(--text-primary)]">{team?.players.length ?? 0} Players</strong> · Total Spent:{' '}
-                <span className="font-mono text-[#c2a365] font-bold tabular-nums">{spent} L</span>
+                <span className="font-mono text-[var(--text-primary)] font-bold tabular-nums">{spent} L</span>
               </p>
             </div>
           </div>
@@ -189,7 +189,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
               </div>
               <div className="w-full h-2 rounded-full bg-[var(--bg-base)] overflow-hidden border border-[var(--border-subtle)]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#10b981] via-[#c2a365] to-[#ef4444] transition-all duration-300"
+                  className="h-full rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-sky,#82C8E5)] transition-all duration-300"
                   style={{ width: `${spentPercent}%` }}
                 />
               </div>
@@ -197,7 +197,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
 
             <div className="text-right">
               <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Remaining Purse</span>
-              <div className="text-3xl font-black font-mono text-[#38bdf8] tracking-tight tabular-nums drop-shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+              <div className="text-3xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tracking-tight tabular-nums drop-shadow-[0_0_12px_rgba(130,200,229,0.25)]">
                 {purse} <span className="text-sm font-sans font-bold text-[var(--text-secondary)]">L</span>
               </div>
             </div>
@@ -219,7 +219,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                   onClick={() => setViewMode('tactical')}
                   className={`px-2.5 py-1 rounded-[6px] transition-colors flex items-center gap-1 ${
                     viewMode === 'tactical'
-                      ? 'bg-[#c2a365] text-[#0b0a09]'
+                      ? 'bg-[var(--accent-primary)] text-white shadow-sm'
                       : 'text-[var(--text-secondary)] hover:text-white'
                   }`}
                 >
@@ -231,7 +231,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                   onClick={() => setViewMode('deck')}
                   className={`px-2.5 py-1 rounded-[6px] transition-colors flex items-center gap-1 ${
                     viewMode === 'deck'
-                      ? 'bg-[#c2a365] text-[#0b0a09]'
+                      ? 'bg-[var(--accent-primary)] text-white shadow-sm'
                       : 'text-[var(--text-secondary)] hover:text-white'
                   }`}
                 >
@@ -280,9 +280,9 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 <div className="text-right">
                   <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">Leading Franchise</span>
                   {highestBidderTeam ? (
-                    <span className="font-bold text-sm text-[#c2a365] flex items-center justify-end gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse-subtle" />
-                      <span className="text-[9px] font-mono font-bold text-[#10b981] uppercase bg-[#10b981]/15 px-1 py-0.5 rounded-[4px]">LIVE</span>
+                    <span className="font-bold text-sm text-[var(--accent-sky,#82C8E5)] flex items-center justify-end gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[var(--status-success)] animate-pulse-subtle" />
+                      <span className="text-[9px] font-mono font-bold text-[var(--status-success)] uppercase bg-[var(--status-success)]/15 px-1 py-0.5 rounded-[4px]">LIVE</span>
                       <span>{highestBidderTeam.name} ({highestBidderTeam.code})</span>
                     </span>
                   ) : (
@@ -309,27 +309,27 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 onClick={() => handlePlaceBid(nextBidAmount)}
                 className={`w-full min-h-[56px] py-4 sm:py-5 px-6 rounded-[16px] font-black text-base sm:text-lg uppercase tracking-wider shadow-xl transition-all duration-200 flex items-center justify-center gap-2.5 active:scale-[0.98] focus-ring ${
                   isHighestBidder
-                    ? 'bg-[var(--bg-elevated)] text-[#10b981] border border-[#10b981]/40 cursor-not-allowed'
+                    ? 'bg-[var(--bg-elevated)] text-[var(--status-success)] border border-[var(--status-success)]/40 cursor-not-allowed'
                     : !canAfford
-                    ? 'bg-[var(--bg-elevated)] text-[#ef4444] border border-[#ef4444]/30 cursor-not-allowed'
+                    ? 'bg-[var(--bg-elevated)] text-[var(--status-alert)] border border-[var(--status-alert)]/30 cursor-not-allowed'
                     : isBidDisabled
                     ? 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] cursor-not-allowed'
-                    : 'bg-[#38bdf8] hover:bg-[#0284c7] text-[#0b0a09] shadow-[0_0_30px_rgba(56,189,248,0.35)]'
+                    : 'bg-[var(--accent-primary)] hover:bg-[#003888] text-white border border-[var(--accent-sky,#82C8E5)]/30 shadow-[0_4px_24px_rgba(0,71,171,0.45)]'
                 }`}
               >
                 {isHighestBidder ? (
                   <>
-                    <Check size={20} className="text-[#10b981] shrink-0" />
+                    <Check size={20} className="text-[var(--status-success)] shrink-0" />
                     <span>You Hold Highest Bid ({currentVal} L)</span>
                   </>
                 ) : !canAfford ? (
                   <>
-                    <AlertCircle size={20} className="text-[#ef4444] shrink-0" />
+                    <AlertCircle size={20} className="text-[var(--status-alert)] shrink-0" />
                     <span>Purse Limit Reached (Need {nextBidAmount}L)</span>
                   </>
                 ) : auction.activePlayer ? (
                   <>
-                    <Zap size={20} className="shrink-0 text-[#0b0a09]" />
+                    <Zap size={20} className="shrink-0 text-[var(--accent-sky,#82C8E5)]" />
                     <span>PLACE BID — {nextBidAmount} Lakhs</span>
                   </>
                 ) : (
@@ -357,7 +357,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                         className={`py-2.5 px-1.5 rounded-[12px] text-xs font-bold transition-all border flex flex-col items-center justify-center focus-ring ${
                           isDisabled
                             ? 'bg-[var(--bg-base)]/40 text-[var(--text-tertiary)] border-[var(--border-subtle)]/40 cursor-not-allowed'
-                            : 'bg-[var(--bg-base)] text-[#c2a365] border-[var(--border-subtle)] hover:border-[#38bdf8]/50 hover:bg-[var(--bg-elevated)] active:scale-95'
+                            : 'bg-[var(--bg-base)] text-[var(--accent-sky,#82C8E5)] border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)] hover:bg-[var(--bg-elevated)] active:scale-95'
                         }`}
                       >
                         <span className="font-bold">+{inc}L</span>
@@ -371,7 +371,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
               {/* LIVE REACTION BUTTONS BAR (Clean SVG Icons) */}
               <div className="flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]">
                 <span className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
-                  <Flame size={14} className="text-[#c2a365]" /> Reaction:
+                  <Flame size={14} className="text-[var(--accent-sky,#82C8E5)]" /> Reaction:
                 </span>
                 <div className="flex gap-2">
                   {[
@@ -390,7 +390,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                         AudioEngine.playCheerSound();
                         auction.sendReaction(emoji);
                       }}
-                      className="w-9 h-9 rounded-[10px] bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[#c2a365]/40 hover:bg-[var(--bg-elevated)] flex items-center justify-center transition-transform active:scale-90 focus-ring"
+                      className="w-9 h-9 rounded-[10px] bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)]/50 hover:bg-[var(--bg-elevated)] flex items-center justify-center transition-transform active:scale-90 focus-ring"
                     >
                       <Icon size={16} className={color} />
                     </button>
@@ -408,7 +408,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 onClick={() => setActiveTab('squad')}
                 className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
                   activeTab === 'squad'
-                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    ? 'bg-[var(--accent-primary)] text-white shadow'
                     : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
@@ -418,7 +418,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 onClick={() => setActiveTab('pitch')}
                 className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
                   activeTab === 'pitch'
-                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    ? 'bg-[var(--accent-primary)] text-white shadow'
                     : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
@@ -428,7 +428,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 onClick={() => setActiveTab('notes')}
                 className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
                   activeTab === 'notes'
-                    ? 'bg-[#c2a365] text-[#0b0a09] shadow'
+                    ? 'bg-[var(--accent-primary)] text-white shadow'
                     : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
@@ -455,7 +455,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                           <div className="font-bold text-[var(--text-primary)]">{p.name}</div>
                           <div className="text-[10px] text-[var(--text-secondary)]">{p.role}</div>
                         </div>
-                        <div className="font-mono font-bold text-[#38bdf8] tabular-nums">
+                        <div className="font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums">
                           {p.soldPrice} Lakhs
                         </div>
                       </div>
@@ -487,7 +487,7 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                   value={budgetNotes}
                   onChange={(e) => handleNotesChange(e.target.value)}
                   placeholder="Target Player Valuations:&#10;- Virat Kohli (Max: 240L)&#10;- Jasprit Bumrah (Max: 280L)&#10;- Hardik Pandya (Max: 180L)"
-                  className="flex-1 w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[12px] p-3 text-xs font-mono text-[var(--text-primary)] outline-none focus:border-[#38bdf8] resize-none leading-relaxed"
+                  className="flex-1 w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[12px] p-3 text-xs font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent-sky,#82C8E5)] resize-none leading-relaxed"
                 />
               </div>
             )}

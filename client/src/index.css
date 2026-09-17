@@ -2,11 +2,50 @@
 
 @layer base {
   /* ==========================================================================
-     THEME 1: PEAR.NO (Warm Obsidian Press, Paper Ivory, Cerulean Sky, Sand Gold) - DEFAULT
-     Inspired by pear.no: #0b0a09, #f2f1ed, #111827, #1f2937, #015186, #c2a365.
-     Boxy 16px geometry, 8-point rhythm, 1 display serif font, 16px-18px body.
+     THEME 1: COBALT SKY (Flagship Broadcast Theme / Deep Stadium Precision) - DEFAULT
+     #0047AB (Cobalt Blue), #000080 (Midnight Navy), #82C8E5 (Sky Blue), #6D8196 (Slate Steel)
+     Boxy 16px geometry, 8-point rhythm, athletic sans display font, 16px body.
      ========================================================================== */
   :root,
+  :root[data-theme="cobalt"] {
+    --bg-base: #030712;               /* Deep midnight navy foundation */
+    --bg-surface: #071228;            /* Rich cobalt-tinted midnight surface */
+    --bg-elevated: #0d1e3d;           /* Elevated tactical navy card panel */
+    --bg-subtle: #091730;             /* Subdued navy layer */
+
+    --border-subtle: rgba(109, 129, 150, 0.20); /* Slate steel border */
+    --border-prominent: rgba(130, 200, 229, 0.45); /* Sky blue prominent border */
+    --border-focus: #82c8e5;          /* Sky Blue focus ring */
+
+    --text-primary: #f4f8fc;          /* Crisp stadium white */
+    --text-secondary: #889bb0;        /* Cool slate steel */
+    --text-tertiary: #506375;         /* Muted tactical slate */
+    --text-muted: #889bb0;
+
+    --accent-primary: #0047ab;        /* Pure Cobalt Blue */
+    --accent-primary-hover: #003788;
+    --accent-primary-fg: #ffffff;
+    --accent-secondary: #6d8196;      /* Slate Blue */
+    --accent-gold: #82c8e5;           /* Mapped to Sky Blue for high-contrast highlights */
+    --accent-sky: #82c8e5;            /* Sky Blue highlight */
+    --accent-success: #00d284;        /* Athletic Mint Green */
+    --accent-danger: #ff4b55;         /* Stadium Flare Red */
+    --accent-bid: #0047ab;            /* Cobalt Action */
+    --accent-alert: #ff4b55;          /* Alert Red */
+    --accent-info: #82c8e5;           /* Sky Blue */
+
+    --card-radius: 16px;              /* Boxy 16px geometry */
+    --badge-radius: 6px;
+    --button-radius: 10px;
+
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-display: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* ==========================================================================
+     THEME 2: PEAR.NO (Warm Obsidian Press, Paper Ivory, Cerulean Sky, Sand Gold)
+     ========================================================================== */
   :root[data-theme="pear"] {
     --bg-base: #0b0a09;               /* Pear Press: deep warm charcoal obsidian */
     --bg-surface: #111827;            /* Deep midnight slate container */
@@ -21,7 +60,7 @@
     --text-secondary: #8c8a82;        /* Soft warm ink */
     --text-tertiary: #54534f;
 
-    --accent-primary: #38bdf8;        /* Pear Electric Sky / Cerulean (#015186 / #38bdf8) */
+    --accent-primary: #38bdf8;        /* Pear Electric Sky / Cerulean */
     --accent-primary-hover: #0284c7;
     --accent-primary-fg: #0b0a09;
     --accent-secondary: #c2a365;      /* Pear Sand Gold */
@@ -34,7 +73,7 @@
     --accent-alert: #ef4444;          /* Signal Red */
     --accent-info: #015186;           /* Neoclassical Sky */
 
-    --card-radius: 16px;              /* Boxy 16px-18px geometry */
+    --card-radius: 16px;
     --badge-radius: 6px;
     --button-radius: 12px;
 
@@ -299,4 +338,96 @@
   background: #d4ff00;
   color: #000000;
 }
+
+/* ==========================================================================
+   THEME ADAPTATION UTILITIES (Cobalt Sky Overrides)
+   Ensures hardcoded Sand Gold (#c2a365) and legacy sky blue classes
+   harmoniously map to Sky Blue (#82C8E5) and Cobalt Blue (#0047AB)
+   ========================================================================== */
+[data-theme="cobalt"] [class*="text-[#c2a365]"],
+[data-theme="cobalt"] .text-accent-gold {
+  color: #82c8e5 !important;
+}
+
+[data-theme="cobalt"] [class*="bg-[#c2a365]"] {
+  background-color: #0047ab !important;
+  color: #ffffff !important;
+}
+
+[data-theme="cobalt"] [class*="bg-[#c2a365]/10"],
+[data-theme="cobalt"] [class*="bg-[#c2a365]/15"],
+[data-theme="cobalt"] [class*="bg-[#c2a365]/20"],
+[data-theme="cobalt"] [class*="bg-[#c2a365]/25"],
+[data-theme="cobalt"] [class*="bg-[#c2a365]/30"] {
+  background-color: rgba(130, 200, 229, 0.12) !important;
+}
+
+[data-theme="cobalt"] [class*="border-[#c2a365]"],
+[data-theme="cobalt"] [class*="border-[#c2a365]/30"],
+[data-theme="cobalt"] [class*="border-[#c2a365]/40"] {
+  border-color: rgba(130, 200, 229, 0.35) !important;
+}
+
+[data-theme="cobalt"] [class*="hover:border-[#c2a365]"]:hover,
+[data-theme="cobalt"] [class*="hover:border-[#c2a365]/40"]:hover {
+  border-color: #82c8e5 !important;
+}
+
+[data-theme="cobalt"] [class*="text-[#38bdf8]"],
+[data-theme="cobalt"] [class*="text-sky-400"] {
+  color: #82c8e5 !important;
+}
+
+[data-theme="cobalt"] [class*="bg-[#38bdf8]"],
+[data-theme="cobalt"] [class*="bg-sky-500"] {
+  background-color: #0047ab !important;
+  color: #ffffff !important;
+}
+
+[data-theme="cobalt"] [class*="bg-sky-500/10"],
+[data-theme="cobalt"] [class*="bg-sky-500/15"],
+[data-theme="cobalt"] [class*="bg-sky-500/20"] {
+  background-color: rgba(130, 200, 229, 0.12) !important;
+}
+
+[data-theme="cobalt"] [class*="border-sky-500"],
+[data-theme="cobalt"] [class*="border-sky-500/30"],
+[data-theme="cobalt"] [class*="border-sky-500/40"] {
+  border-color: rgba(130, 200, 229, 0.35) !important;
+}
+
+[data-theme="cobalt"] ::selection {
+  background: #0047ab;
+  color: #ffffff;
+}
+
+/* Dedicated Cobalt Sky utility classes */
+.bg-cobalt {
+  background-color: #0047ab !important;
+}
+.text-cobalt {
+  color: #0047ab !important;
+}
+.border-cobalt {
+  border-color: #0047ab !important;
+}
+.text-sky-luminous {
+  color: #82c8e5 !important;
+}
+.bg-sky-luminous {
+  background-color: #82c8e5 !important;
+}
+.border-sky-luminous {
+  border-color: #82c8e5 !important;
+}
+.text-slate-steel {
+  color: #6d8196 !important;
+}
+.bg-slate-steel {
+  background-color: #6d8196 !important;
+}
+.border-slate-steel {
+  border-color: #6d8196 !important;
+}
+
 

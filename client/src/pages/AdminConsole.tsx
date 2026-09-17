@@ -337,12 +337,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
       <div className="flex-1 flex flex-col p-3 sm:p-4 max-w-7xl w-full mx-auto gap-4">
         {/* AUCTION COMPLETED BANNER */}
         {auction.status === 'completed' && (
-          <div className="p-4 rounded-xl bg-violet-950/80 border border-violet-500/40 text-violet-100 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+          <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--accent-sky,#82C8E5)]/40 text-[var(--text-primary)] flex flex-wrap items-center justify-between gap-3 shadow-lg">
             <div className="flex items-center gap-3">
-              <Award className="text-violet-400 shrink-0" size={24} />
+              <Award className="text-[var(--accent-sky,#82C8E5)] shrink-0" size={24} />
               <div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-violet-200">Tournament Auction Finalized</h2>
-                <p className="text-xs text-violet-300/80">All bidding operations are locked. Export the final official rosters below.</p>
+                <h2 className="text-sm font-black uppercase tracking-wider text-[var(--text-primary)]">Tournament Auction Finalized</h2>
+                <p className="text-xs text-[var(--text-secondary)]">All bidding operations are locked. Export the final official rosters below.</p>
               </div>
             </div>
             <button
@@ -350,7 +350,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 const csv = buildResultsCsv(auction);
                 downloadTextFile(`${(auction.name || 'auction').replace(/[^a-z0-9]+/gi, '-')}-results.csv`, csv);
               }}
-              className="px-4 py-2 rounded-lg bg-violet-500 hover:bg-violet-400 text-slate-950 font-bold text-xs shadow-md transition-colors focus-ring"
+              className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] hover:bg-[#003888] text-white font-bold text-xs shadow-md transition-colors focus-ring"
             >
               Download Final Rosters CSV
             </button>
@@ -362,15 +362,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-5 rounded-[16px] bg-[var(--bg-surface)] border-2 border-[#c2a365]/60 shadow-2xl flex flex-wrap items-center justify-between gap-4"
+            className="p-5 rounded-[16px] bg-[var(--bg-surface)] border-2 border-[var(--accent-sky,#82C8E5)]/50 shadow-2xl flex flex-wrap items-center justify-between gap-4"
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-[10px] bg-[#c2a365]/15 border border-[#c2a365]/30 flex items-center justify-center text-[#c2a365] shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-[10px] bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent-sky,#82C8E5)] shrink-0 mt-0.5">
                 <Award size={22} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-bold text-[#c2a365] uppercase tracking-wider bg-[#c2a365]/15 px-2 py-0.5 rounded-[4px]">
+                  <span className="text-[10px] font-mono font-bold text-[var(--accent-sky,#82C8E5)] uppercase tracking-wider bg-[var(--accent-primary)]/20 px-2 py-0.5 rounded-[4px] border border-[var(--border-subtle)]">
                     RTM_PENDING
                   </span>
                   <h3 className="text-sm font-display font-bold text-[var(--text-primary)]">
@@ -379,7 +379,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-lg leading-relaxed">
                   <strong className="text-[var(--text-primary)]">{auction.teams.find((t) => t.id === auction.rtmState?.rtmTeamId)?.name}</strong> has first option to match the winning gavel bid of{' '}
-                  <span className="font-mono font-bold text-[#38bdf8]">{auction.rtmState?.highestBid ?? auction.currentBid} Lakhs</span> to retain{' '}
+                  <span className="font-mono font-bold text-[var(--accent-sky,#82C8E5)]">{auction.rtmState?.highestBid ?? auction.currentBid} Lakhs</span> to retain{' '}
                   <strong className="text-[var(--text-primary)]">{auction.activePlayer?.name}</strong>.
                 </p>
               </div>
@@ -387,14 +387,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             <div className="flex items-center gap-2.5 shrink-0">
               <button
                 type="button"
-                className="px-4 py-2.5 rounded-[12px] bg-[#10b981] hover:bg-emerald-600 text-[#0b0a09] font-black text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-95 focus-ring flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-[12px] bg-[var(--status-success)] hover:brightness-110 text-[#030712] font-black text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-95 focus-ring flex items-center gap-1.5"
                 onClick={() => auction.exerciseRtm(true)}
               >
                 <Check size={14} /> Match &amp; Retain ({auction.rtmState?.highestBid ?? auction.currentBid}L)
               </button>
               <button
                 type="button"
-                className="px-4 py-2.5 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-[#ef4444] border border-[#ef4444]/40 font-black text-xs uppercase tracking-wider shadow transition-transform active:scale-95 focus-ring flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-[var(--status-alert)] border border-[var(--status-alert)]/40 font-black text-xs uppercase tracking-wider shadow transition-transform active:scale-95 focus-ring flex items-center gap-1.5"
                 onClick={() => auction.exerciseRtm(false)}
               >
                 <X size={14} /> Decline RTM
@@ -408,7 +408,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           <button
             onClick={() => setMobileTab('deck')}
             className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors ${
-              mobileTab === 'deck' ? 'bg-[#c2a365] text-[#0b0a09] shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              mobileTab === 'deck' ? 'bg-[var(--accent-primary)] text-white shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             Gavel Desk
@@ -416,7 +416,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           <button
             onClick={() => setMobileTab('queue')}
             className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors ${
-              mobileTab === 'queue' ? 'bg-[#c2a365] text-[#0b0a09] shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              mobileTab === 'queue' ? 'bg-[var(--accent-primary)] text-white shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             Player Queue ({availablePlayers.length})
@@ -424,7 +424,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
           <button
             onClick={() => setMobileTab('radar')}
             className={`flex-1 py-2 rounded-[8px] text-xs font-bold transition-colors ${
-              mobileTab === 'radar' ? 'bg-[#c2a365] text-[#0b0a09] shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              mobileTab === 'radar' ? 'bg-[var(--accent-primary)] text-white shadow' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             Purses &amp; Log
@@ -444,7 +444,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
               <div>
                 <h2 className="text-sm font-display font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                   <span>Player Queue</span>
-                  <span className="font-mono text-[#c2a365] text-xs tabular-nums">({availablePlayers.length})</span>
+                  <span className="font-mono text-[var(--accent-sky,#82C8E5)] text-xs tabular-nums">({availablePlayers.length})</span>
                 </h2>
                 <div className="text-[10px] text-[var(--text-secondary)]">
                   {soldCount} sold · {unsoldCount} unsold
@@ -453,14 +453,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
 
               <div className="flex items-center gap-1.5">
                 <button
-                  className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors focus-ring"
+                  className="px-2.5 py-1.5 rounded-lg bg-[var(--accent-primary)] hover:bg-[#003888] text-white font-bold text-xs flex items-center gap-1 transition-colors focus-ring"
                   onClick={() => setShowAddPlayerModal(true)}
                   title="Add player manually"
                 >
                   <Plus size={12} /> Add
                 </button>
                 <button
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs flex items-center gap-1 transition-colors focus-ring"
+                  className="px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-xs flex items-center gap-1 transition-colors focus-ring"
                   onClick={() => fileInputRef.current?.click()}
                   title="Upload CSV player list"
                 >
@@ -476,22 +476,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
               </div>
             </div>
 
-            {uploadMsg && <div className="text-xs text-amber-400 mb-2 p-1.5 rounded bg-amber-500/10">{uploadMsg}</div>}
+            {uploadMsg && <div className="text-xs text-[var(--accent-sky,#82C8E5)] mb-2 p-2 rounded-lg bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)]">{uploadMsg}</div>}
 
             {/* Search Input */}
             <div className="relative mb-2.5">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
               <input
                 type="text"
                 placeholder="Search player name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-amber-400"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent-sky,#82C8E5)]"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white text-xs"
                 >
                   <X size={12} />
                 </button>
@@ -504,10 +504,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 <button
                   key={r}
                   onClick={() => setRoleFilter(r)}
-                  className={`px-2 py-1 rounded-md font-semibold whitespace-nowrap transition-colors ${
+                  className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors ${
                     roleFilter === r
-                      ? 'bg-slate-800 text-amber-300 border border-amber-500/40'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-[var(--accent-primary)] text-white shadow-sm'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
                   }`}
                 >
                   {r}
@@ -522,12 +522,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 return (
                   <div
                     key={p.id}
-                    className="p-2.5 rounded-[8px] bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[rgba(242,241,237,0.16)] transition-colors flex flex-col gap-1.5"
+                    className="p-2.5 rounded-[8px] bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)]/40 transition-colors flex flex-col gap-1.5"
                   >
                     {isEditing ? (
                       <div className="flex flex-col gap-2 p-1">
                         <input
-                          className="text-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[8px] px-2 py-1 text-[var(--text-primary)] outline-none focus:border-[#c2a365]"
+                          className="text-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[8px] px-2 py-1 text-[var(--text-primary)] outline-none focus:border-[var(--accent-sky,#82C8E5)]"
                           value={editPlayerForm.name}
                           onChange={(e) => setEditPlayerForm((f) => ({ ...f, name: e.target.value }))}
                           placeholder="Player Name"
@@ -536,14 +536,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                           <span className="text-[10px] text-[var(--text-secondary)]">Base:</span>
                           <input
                             type="number"
-                            className="w-16 text-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[8px] px-2 py-1 text-[var(--text-primary)] outline-none focus:border-[#c2a365]"
+                            className="w-16 text-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[8px] px-2 py-1 text-[var(--text-primary)] outline-none focus:border-[var(--accent-sky,#82C8E5)] font-mono"
                             value={editPlayerForm.basePrice}
                             onChange={(e) => setEditPlayerForm((f) => ({ ...f, basePrice: Number(e.target.value) }))}
                           />
                           <span className="text-[10px] text-[var(--text-secondary)]">L</span>
                           <button
                             onClick={() => handleSaveEditPlayer(p.id)}
-                            className="p-1 rounded-[6px] bg-[#10b981] text-[#0b0a09] font-bold"
+                            className="p-1 rounded-[6px] bg-[var(--status-success)] text-[#030712] font-bold"
                             title="Save"
                           >
                             <Check size={12} />
@@ -562,7 +562,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-xs text-[var(--text-primary)] truncate">{p.name}</div>
                           <div className="text-[10px] text-[var(--text-secondary)] font-medium">
-                            {p.role} · <span className="font-mono text-[#c2a365]">{p.basePrice} L</span>
+                            {p.role} · <span className="font-mono text-[var(--accent-sky,#82C8E5)] font-semibold">{p.basePrice} L</span>
                           </div>
                         </div>
 
@@ -583,7 +583,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                           ) : (
                             <button
                               type="button"
-                              className="p-1 rounded-[6px] bg-[#ef4444]/10 hover:bg-[#ef4444]/20 text-[#ef4444] transition-colors"
+                              className="p-1 rounded-[6px] bg-[var(--status-alert)]/10 hover:bg-[var(--status-alert)]/20 text-[var(--status-alert)] transition-colors"
                               onClick={() => setConfirmDeleteId(p.id)}
                               title={`Delete ${p.name}`}
                             >
@@ -591,7 +591,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                             </button>
                           )}
                           <button
-                            className="px-2.5 py-1 rounded-[8px] bg-[#c2a365] hover:bg-[#d4b87a] disabled:opacity-40 text-[#0b0a09] font-black text-[11px] uppercase tracking-wider transition-transform active:scale-95 focus-ring"
+                            className="px-2.5 py-1 rounded-[8px] bg-[var(--accent-primary)] hover:bg-[#003888] disabled:opacity-40 text-white font-black text-[11px] uppercase tracking-wider transition-transform active:scale-95 focus-ring"
                             disabled={!!auction.activePlayer || auction.status === 'completed'}
                             onClick={() => {
                               AIAuctioneer.announceNewPlayer(p.name, p.role, p.basePrice);
@@ -609,7 +609,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                     <div className="flex items-center gap-1.5 pt-1 border-t border-[var(--border-subtle)]">
                       <input
                         placeholder="CricHeroes URL"
-                        className="flex-1 text-[10px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[6px] px-2 py-0.5 text-[var(--text-secondary)] outline-none focus:border-[#c2a365]"
+                        className="flex-1 text-[10px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-[6px] px-2 py-0.5 text-[var(--text-secondary)] outline-none focus:border-[var(--accent-sky,#82C8E5)]"
                         defaultValue={p.cricheroesUrl || ''}
                         onChange={(e) => setCricheroesUrlDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
                       />
@@ -620,7 +620,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                         title="Sync CricHeroes stats & photo"
                       >
                         {syncingIds.has(p.id) || p.cricheroesStatus === 'pending' ? (
-                          <Loader2 size={10} className="animate-spin text-[#c2a365]" />
+                          <Loader2 size={10} className="animate-spin text-[var(--accent-sky,#82C8E5)]" />
                         ) : (
                           <Link2 size={10} />
                         )}
@@ -647,7 +647,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             {/* Stage Title */}
             <div className="flex justify-between items-center pb-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-[8px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[#c2a365]">
+                <div className="w-7 h-7 rounded-[8px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent-sky,#82C8E5)]">
                   <Gavel size={15} />
                 </div>
                 <div>
@@ -661,7 +661,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 title="View keyboard shortcuts cheatsheet"
               >
                 <span>Hotkeys</span>
-                <kbd className="px-1.5 py-0.5 rounded-[6px] bg-[var(--bg-base)] text-[10px] text-[#c2a365] font-mono border border-[var(--border-subtle)] hover:border-[#c2a365]/40 shadow-sm cursor-pointer">?</kbd>
+                <kbd className="px-1.5 py-0.5 rounded-[6px] bg-[var(--bg-base)] text-[10px] text-[var(--accent-sky,#82C8E5)] font-mono border border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)]/50 shadow-sm cursor-pointer">?</kbd>
               </button>
             </div>
 
@@ -678,7 +678,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                     <span className="text-xs font-semibold text-[var(--text-secondary)] block mb-0.5">
                       Authoritative Bid
                     </span>
-                    <div className="text-4xl sm:text-5xl font-black font-mono text-[#38bdf8] tracking-tight tabular-nums drop-shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+                    <div className="text-4xl sm:text-5xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tracking-tight tabular-nums drop-shadow-[0_0_15px_rgba(130,200,229,0.25)]">
                       {derived.effectiveBid} <span className="text-xl font-sans text-[var(--text-secondary)] font-bold">Lakhs</span>
                     </div>
                   </div>
@@ -686,9 +686,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                   <div className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
                     <span>Highest Bidder:</span>
                     {derived.highestBidderTeam ? (
-                      <span className="font-bold text-[#c2a365] flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse-subtle" />
-                        <span className="text-[9px] font-mono font-bold text-[#10b981] uppercase bg-[#10b981]/15 px-1 py-0.5 rounded-[4px]">LIVE</span>
+                      <span className="font-bold text-[var(--accent-sky,#82C8E5)] flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[var(--status-success)] animate-pulse-subtle" />
+                        <span className="text-[9px] font-mono font-bold text-[var(--status-success)] uppercase bg-[var(--status-success)]/15 px-1 py-0.5 rounded-[4px]">LIVE</span>
                         <span>{derived.highestBidderTeam.name} ({derived.highestBidderTeam.code})</span>
                       </span>
                     ) : (
@@ -710,9 +710,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                         if (auction.timerActive) auction.pauseTimer();
                         else auction.startTimer();
                       }}
-                      className="px-5 py-1.5 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-slate-700 border border-[var(--border-subtle)] text-xs font-bold text-[var(--text-primary)] transition-colors flex items-center gap-2 focus-ring"
+                      className="px-5 py-1.5 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-bold text-[var(--text-primary)] transition-colors flex items-center gap-2 focus-ring"
                     >
-                      {auction.timerActive ? <Pause size={13} className="text-[#c2a365]" /> : <Play size={13} className="text-[#38bdf8]" />}
+                      {auction.timerActive ? <Pause size={13} className="text-[var(--accent-sky,#82C8E5)]" /> : <Play size={13} className="text-[var(--accent-sky,#82C8E5)]" />}
                       <span>{auction.timerActive ? 'Pause Clock' : 'Start Clock'}</span>
                       <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-base)] text-[10px] font-mono text-[var(--text-secondary)] border border-[var(--border-subtle)]">[Space]</kbd>
                     </button>
@@ -723,7 +723,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                 <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[var(--border-subtle)]">
                   <button
                     onClick={handleSold}
-                    className="py-3 px-3 rounded-[12px] bg-[#10b981] hover:bg-[#059669] active:scale-[0.98] text-[#0b0a09] font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
+                    className="py-3 px-3 rounded-[12px] bg-[var(--status-success)] hover:brightness-110 active:scale-[0.98] text-[#030712] font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
                   >
                     <div className="flex items-center gap-1.5">
                       <Gavel size={15} />
@@ -734,7 +734,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
 
                   <button
                     onClick={handleUnsold}
-                    className="py-3 px-3 rounded-[12px] bg-[#ef4444] hover:bg-[#dc2626] active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
+                    className="py-3 px-3 rounded-[12px] bg-[var(--status-alert)] hover:brightness-110 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
                   >
                     <div className="flex items-center gap-1.5">
                       <X size={15} />
@@ -746,7 +746,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                   <button
                     onClick={auction.undoLastAction}
                     disabled={!auction.undoAvailable}
-                    className="py-3 px-3 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-slate-700 disabled:opacity-40 text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider border border-[var(--border-subtle)] flex flex-col items-center justify-center gap-1 focus-ring transition-all"
+                    className="py-3 px-3 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] disabled:opacity-40 text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider border border-[var(--border-subtle)] flex flex-col items-center justify-center gap-1 focus-ring transition-all"
                   >
                     <div className="flex items-center gap-1.5">
                       <RotateCcw size={15} />
@@ -758,7 +758,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-[var(--text-secondary)]">
-                <div className="w-14 h-14 rounded-[16px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[#c2a365] mb-3 shadow-inner">
+                <div className="w-14 h-14 rounded-[16px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent-sky,#82C8E5)] mb-3 shadow-inner">
                   <Gavel size={28} />
                 </div>
                 <h3 className="text-base font-display font-bold text-[var(--text-primary)] mb-1">Gavel Stage Ready</h3>
@@ -779,10 +779,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-4 flex flex-col h-1/2 shadow-xl">
               <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-[var(--border-subtle)]">
                 <h3 className="text-xs font-display font-bold uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-1.5">
-                  <Flame size={13} className="text-[#c2a365]" />
+                  <Flame size={13} className="text-[var(--accent-sky,#82C8E5)]" />
                   <span>Auction Stream</span>
                 </h3>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)] animate-ping" />
               </div>
 
               <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
@@ -799,10 +799,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                       <span
                         className={`font-mono font-bold text-xs shrink-0 tabular-nums ${
                           log.type === 'sold'
-                            ? 'text-[#10b981]'
+                            ? 'text-[var(--status-success)]'
                             : log.type === 'unsold'
-                            ? 'text-[#ef4444]'
-                            : 'text-[#38bdf8]'
+                            ? 'text-[var(--status-alert)]'
+                            : 'text-[var(--accent-sky,#82C8E5)]'
                         }`}
                       >
                         {log.type === 'unsold' ? 'UNSOLD' : `${log.amount} L`}
@@ -819,7 +819,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-4 flex flex-col h-1/2 shadow-xl">
               <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-[var(--border-subtle)]">
                 <h3 className="text-xs font-display font-bold uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-1.5">
-                  <TrendingUp size={13} className="text-[#38bdf8]" />
+                  <TrendingUp size={13} className="text-[var(--accent-sky,#82C8E5)]" />
                   <span>Purse Radar</span>
                 </h3>
                 <span className="text-[10px] text-[var(--text-secondary)] font-mono font-bold">{auction.teams.length} Teams</span>
@@ -833,11 +833,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                     <div key={t.id} className="p-2 rounded-[8px] bg-[var(--bg-base)] border border-[var(--border-subtle)]">
                       <div className="flex justify-between items-center font-semibold text-[var(--text-primary)] mb-1">
                         <span className="truncate max-w-[120px]" title={t.name}>{t.name}</span>
-                        <span className="font-mono text-[#10b981] tabular-nums font-bold">{t.purse} L</span>
+                        <span className="font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums font-bold">{t.purse} L</span>
                       </div>
                       <div className="w-full h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden mb-1">
                         <div
-                          className="h-full bg-gradient-to-r from-[#10b981] to-[#c2a365] transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-sky,#82C8E5)] transition-all duration-300"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -871,7 +871,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             >
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-base">
-                  <Users className="text-[#c2a365]" size={20} />
+                  <Users className="text-[var(--accent-sky,#82C8E5)]" size={20} />
                   <span className="font-display">Franchise Team Bidder Access Links</span>
                 </div>
                 <button
@@ -889,7 +889,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
 
               {teamLinksLoading ? (
                 <div className="py-12 flex justify-center items-center text-[var(--text-secondary)] gap-2">
-                  <Loader2 className="animate-spin text-[#c2a365]" size={20} /> Loading franchise links...
+                  <Loader2 className="animate-spin text-[var(--accent-sky,#82C8E5)]" size={20} /> Loading franchise links...
                 </div>
               ) : (
                 <div className="overflow-y-auto space-y-3 flex-1 pr-1 text-xs">
@@ -899,7 +899,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                       <div key={t.id} className="p-3 bg-[var(--bg-base)] rounded-[12px] border border-[var(--border-subtle)] flex flex-col gap-1.5">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-[var(--text-primary)]">{t.name} ({t.code})</span>
-                          <span className="font-mono text-[#10b981] tabular-nums font-bold">Purse: {t.purse} L</span>
+                          <span className="font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums font-bold">Purse: {t.purse} L</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <input
@@ -911,7 +911,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                           <button
                             type="button"
                             onClick={() => navigator.clipboard.writeText(teamUrl)}
-                            className="px-3 py-1.5 rounded-[8px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-[var(--text-primary)] font-semibold text-xs focus-ring border border-[var(--border-subtle)] transition-colors"
+                            className="px-3 py-1.5 rounded-[8px] bg-[var(--accent-primary)] hover:bg-[#003888] text-white font-semibold text-xs focus-ring border border-[var(--border-subtle)] transition-colors"
                           >
                             Copy
                           </button>
@@ -938,7 +938,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
             >
               <div className="flex justify-between items-center mb-4 pb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-base">
-                  <Plus className="text-[#c2a365]" size={18} />
+                  <Plus className="text-[var(--accent-sky,#82C8E5)]" size={18} />
                   <span className="font-display">Add Player to Auction Pool</span>
                 </div>
                 <button
@@ -954,7 +954,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
               </div>
 
               {addPlayerError && (
-                <div role="alert" className="mb-4 p-2.5 rounded-[8px] bg-[#ef4444]/15 border border-[#ef4444]/30 text-[#ef4444] text-xs font-semibold flex items-center gap-2">
+                <div role="alert" className="mb-4 p-2.5 rounded-[8px] bg-[var(--status-alert)]/15 border border-[var(--status-alert)]/30 text-[var(--status-alert)] text-xs font-semibold flex items-center gap-2">
                   <AlertCircle size={14} className="shrink-0" />
                   <span>{addPlayerError}</span>
                 </div>
@@ -967,7 +967,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                     required
                     value={addPlayerForm.name}
                     onChange={(e) => setAddPlayerForm((f) => ({ ...f, name: e.target.value }))}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[8px] px-3 py-2 text-[var(--text-primary)] outline-none focus:border-[#38bdf8]"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[8px] px-3 py-2 text-[var(--text-primary)] outline-none focus:border-[var(--accent-sky,#82C8E5)]"
                     placeholder="e.g. Virat Kohli"
                   />
                 </div>
@@ -1028,7 +1028,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-[8px] bg-[#c2a365] hover:bg-[#d4b87a] text-[#0b0a09] font-black uppercase tracking-wider focus-ring shadow-md transition-colors"
+                    className="px-5 py-2 rounded-[8px] bg-[var(--accent-primary)] hover:bg-[#003888] text-white font-black uppercase tracking-wider focus-ring shadow-md transition-colors"
                   >
                     Add Player
                   </button>

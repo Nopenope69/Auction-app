@@ -31,7 +31,7 @@ export const KeyboardShortcutModal: React.FC<KeyboardShortcutModalProps> = ({ is
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0b0a09]/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -44,7 +44,7 @@ export const KeyboardShortcutModal: React.FC<KeyboardShortcutModalProps> = ({ is
           >
             <div className="flex justify-between items-center pb-3 border-b border-[var(--border-subtle)] mb-4">
               <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-sm">
-                <Keyboard className="text-[#c2a365]" size={18} />
+                <Keyboard className="text-[var(--accent-sky)]" size={18} />
                 <h3 id="shortcuts-title" className="font-display text-base">Auctioneer Keyboard Controls</h3>
               </div>
               <button
@@ -71,7 +71,7 @@ export const KeyboardShortcutModal: React.FC<KeyboardShortcutModalProps> = ({ is
                     <div className="font-semibold text-[var(--text-primary)]">{s.label}</div>
                     <div className="text-[10px] text-[var(--text-secondary)]">{s.description}</div>
                   </div>
-                  <kbd className="px-2.5 py-1 rounded-[6px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs font-mono font-bold text-[#c2a365] shadow-sm shrink-0">
+                  <kbd className="px-2.5 py-1 rounded-[6px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs font-mono font-bold text-[var(--accent-sky)] shadow-sm shrink-0">
                     {s.key}
                   </kbd>
                 </div>

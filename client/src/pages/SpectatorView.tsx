@@ -142,7 +142,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               onClick={() => setActiveTab('arena')}
               className={`px-3.5 py-1.5 rounded-[8px] text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'arena'
-                  ? 'bg-[#c2a365] text-[#0b0a09] shadow-md'
+                  ? 'bg-[var(--accent-primary)] text-white shadow-md'
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
@@ -152,7 +152,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               onClick={() => setActiveTab('analytics')}
               className={`px-3.5 py-1.5 rounded-[8px] text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'analytics'
-                  ? 'bg-[#c2a365] text-[#0b0a09] shadow-md'
+                  ? 'bg-[var(--accent-primary)] text-white shadow-md'
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
@@ -162,7 +162,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               onClick={() => setActiveTab('feed')}
               className={`px-3.5 py-1.5 rounded-[8px] text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'feed'
-                  ? 'bg-[#c2a365] text-[#0b0a09] shadow-md'
+                  ? 'bg-[var(--accent-primary)] text-white shadow-md'
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
@@ -193,7 +193,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
             <button
               type="button"
               onClick={() => setShowSimulator(true)}
-              className="px-3.5 py-2 rounded-[12px] bg-gradient-to-r from-[#c2a365] to-[#10b981] hover:opacity-95 text-[#0b0a09] font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-1.5 focus-ring"
+              className="px-3.5 py-2 rounded-[12px] bg-[var(--accent-primary)] hover:bg-[#003888] text-white font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-1.5 focus-ring border border-[var(--accent-sky,#82C8E5)]/30"
             >
               <Trophy size={14} /> Simulate Playoffs
             </button>
@@ -213,17 +213,17 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               <motion.section
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-[var(--bg-surface)] border-2 border-[#c2a365]/40 rounded-[16px] p-6 sm:p-8 shadow-[0_0_50px_rgba(194,163,101,0.12)] relative overflow-hidden"
+                className="bg-[var(--bg-surface)] border-2 border-[var(--accent-sky,#82C8E5)]/40 rounded-[16px] p-6 sm:p-8 shadow-[0_0_50px_rgba(0,71,171,0.15)] relative overflow-hidden"
               >
                 {/* Subtle background ambient blur */}
-                <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-[#c2a365]/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-[var(--accent-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                   {/* Left: Featured Player Card */}
                   <div className="lg:col-span-7">
-                    <div className="text-xs font-semibold text-[#c2a365] mb-3 flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-[#10b981]/15 border border-[#10b981]/30 text-[#10b981] text-[10px] font-mono font-bold tracking-normal">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                    <div className="text-xs font-semibold text-[var(--accent-sky,#82C8E5)] mb-3 flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-[var(--status-success)]/15 border border-[var(--status-success)]/30 text-[var(--status-success)] text-[10px] font-mono font-bold tracking-normal">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)] animate-pulse" />
                         LIVE
                       </span>
                       <span>On The Auction Block</span>
@@ -238,7 +238,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                       <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">
                         Current Highest Bid
                       </div>
-                      <div className="text-5xl sm:text-6xl font-black font-mono text-[#38bdf8] tabular-nums my-1 drop-shadow-[0_0_20px_rgba(56,189,248,0.3)]">
+                      <div className="text-5xl sm:text-6xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums my-1 drop-shadow-[0_0_20px_rgba(130,200,229,0.25)]">
                         {derived.effectiveBid} <span className="text-2xl font-sans text-[var(--text-secondary)]">L</span>
                       </div>
 
@@ -246,13 +246,13 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                       <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-center gap-2">
                         <span className="text-xs text-[var(--text-tertiary)] font-medium">Leading:</span>
                         {highestBidderTeam ? (
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-[8px] bg-[#c2a365]/10 border border-[#c2a365]/30 text-[#c2a365] font-bold text-sm">
-                            <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-[8px] bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)] text-[var(--accent-sky,#82C8E5)] font-bold text-sm">
+                            <span className="w-2 h-2 rounded-full bg-[var(--status-success)] animate-pulse" />
                             <span>{highestBidderTeam.name}</span>
                             <span className="text-xs font-mono text-[var(--text-secondary)]">({highestBidderTeam.code})</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-[#c2a365]/80 italic font-semibold">
+                          <span className="text-xs text-[var(--text-secondary)] italic font-semibold">
                             Awaiting opening bid (Base: {auction.activePlayer.basePrice}L)
                           </span>
                         )}
@@ -271,7 +271,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                         <div className="flex items-center gap-2.5">
                           <Clock
                             size={20}
-                            className={auction.timer <= 3 ? 'text-rose-400 animate-bounce' : 'text-[#c2a365]'}
+                            className={auction.timer <= 3 ? 'text-rose-400 animate-bounce' : 'text-[var(--accent-sky,#82C8E5)]'}
                           />
                           <div>
                             <div className="text-[10px] uppercase font-bold text-[var(--text-secondary)]">
@@ -282,7 +282,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                             </div>
                           </div>
                         </div>
-                        <div className="text-3xl font-black font-mono text-[#c2a365] tabular-nums">
+                        <div className="text-3xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums">
                           {auction.timer}s
                         </div>
                       </div>
@@ -292,7 +292,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                     <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-[16px] p-4">
                       <div className="text-[10px] font-bold uppercase text-[var(--text-tertiary)] tracking-wider mb-2 flex items-center justify-between">
                         <span>Active Player Bid Chain</span>
-                        <Activity size={12} className="text-[#c2a365]" />
+                        <Activity size={12} className="text-[var(--accent-sky,#82C8E5)]" />
                       </div>
                       {currentActiveBids.length > 0 ? (
                         <div className="space-y-1.5 max-h-36 overflow-y-auto">
@@ -302,7 +302,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                               className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-[8px] bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
                             >
                               <span className="font-bold text-[var(--text-primary)] truncate max-w-[140px]">{b.teamName}</span>
-                              <span className="font-mono font-bold text-[#38bdf8] tabular-nums">
+                              <span className="font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums">
                                 {b.amount} L
                               </span>
                             </div>
@@ -321,7 +321,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               /* INTERMISSION / WAITING STATE */
               <section className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[16px] p-8 text-center relative overflow-hidden shadow-xl">
                 <div className="max-w-md mx-auto flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-[16px] bg-[#c2a365]/10 border border-[#c2a365]/30 flex items-center justify-center text-[#c2a365] mb-4">
+                  <div className="w-16 h-16 rounded-[16px] bg-[var(--accent-primary)]/20 border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent-sky,#82C8E5)] mb-4">
                     <Clock size={32} />
                   </div>
                   <h2 className="text-xl font-display font-bold text-white mb-2">Auction Block In Recess</h2>
@@ -332,18 +332,18 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
 
                   {/* Last Deal Spotlight */}
                   {lastSoldDeal && (
-                    <div className="w-full bg-[var(--bg-base)] border border-[#10b981]/30 rounded-[16px] p-4 text-left">
-                      <div className="text-[10px] uppercase font-bold text-[#10b981] tracking-wider mb-1 flex items-center gap-1.5">
+                    <div className="w-full bg-[var(--bg-base)] border border-[var(--status-success)]/30 rounded-[16px] p-4 text-left">
+                      <div className="text-[10px] uppercase font-bold text-[var(--status-success)] tracking-wider mb-1 flex items-center gap-1.5">
                         <CheckCircle2 size={12} /> Last Hammer Fall
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="font-black text-white">{lastSoldDeal.playerName}</span>
-                        <span className="font-mono font-bold text-[#38bdf8] tabular-nums">
+                        <span className="font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums">
                           {lastSoldDeal.amount} L
                         </span>
                       </div>
                       <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-                        Acquired by <span className="font-bold text-[#c2a365]">{lastSoldDeal.teamName}</span>
+                        Acquired by <span className="font-bold text-[var(--accent-sky,#82C8E5)]">{lastSoldDeal.teamName}</span>
                       </div>
                     </div>
                   )}
@@ -356,7 +356,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[var(--border-subtle)]">
                 <div>
                   <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
-                    <Users size={20} className="text-[#c2a365]" /> Franchise Squads &amp; Purse Standings
+                    <Users size={20} className="text-[var(--accent-sky,#82C8E5)]" /> Franchise Squads &amp; Purse Standings
                   </h2>
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                     {auction.teams.length} Teams · {summaryStats.soldCount} Signed · {summaryStats.totalSpent} L Total Spend
@@ -372,7 +372,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                       placeholder="Search player or team..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[12px] pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[#38bdf8] w-48 sm:w-60"
+                      className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[12px] pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[var(--accent-sky,#82C8E5)] w-48 sm:w-60"
                     />
                   </div>
 
@@ -383,7 +383,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                         onClick={() => setRoleFilter(rf)}
                         className={`px-2.5 py-1 rounded-[8px] font-bold capitalize transition-colors ${
                           roleFilter === rf
-                            ? 'bg-[#c2a365] text-[#0b0a09]'
+                            ? 'bg-[var(--accent-primary)] text-white shadow-sm'
                             : 'text-[var(--text-secondary)] hover:text-white'
                         }`}
                       >
@@ -403,7 +403,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                   return (
                     <div
                       key={t.id}
-                      className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[#c2a365]/30 rounded-[16px] p-5 shadow-xl flex flex-col justify-between transition-all"
+                      className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)]/40 rounded-[16px] p-5 shadow-xl flex flex-col justify-between transition-all"
                     >
                       <div>
                         {/* Team Card Header */}
@@ -417,14 +417,14 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                                 {t.code}
                               </span>
                               {t.rtmCards > 0 && (
-                                <span className="text-[10px] font-bold text-[#c2a365]">
+                                <span className="text-[10px] font-bold text-[var(--accent-sky,#82C8E5)]">
                                   {t.rtmCards} RTM
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <div className="text-sm font-black font-mono text-[#38bdf8] tabular-nums">
+                            <div className="text-sm font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums">
                               {t.purse} L
                             </div>
                             <div className="text-[10px] text-[var(--text-secondary)] font-semibold">
@@ -441,7 +441,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-[var(--bg-base)] overflow-hidden border border-[var(--border-subtle)]">
                             <div
-                              className="h-full bg-gradient-to-r from-[#10b981] to-[#c2a365] transition-all duration-300"
+                              className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-sky,#82C8E5)] transition-all duration-300"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -461,7 +461,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
                                     {p.role}
                                   </div>
                                 </div>
-                                <span className="font-mono font-bold text-[#38bdf8] tabular-nums shrink-0">
+                                <span className="font-mono font-bold text-[var(--accent-sky,#82C8E5)] tabular-nums shrink-0">
                                   {p.soldPrice} L
                                 </span>
                               </div>
@@ -500,7 +500,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-[var(--border-subtle)]">
               <div>
                 <h3 className="text-base font-display font-bold text-white flex items-center gap-2">
-                  <ListOrdered size={18} className="text-[#c2a365]" /> Auction Transaction Journal
+                  <ListOrdered size={18} className="text-[var(--accent-sky,#82C8E5)]" /> Auction Transaction Journal
                 </h3>
                 <p className="text-xs text-[var(--text-secondary)]">
                   Reverse-chronological stream of all bids, hammer falls, and passes.
@@ -508,7 +508,7 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
               </div>
               <button
                 onClick={handleExportCsv}
-                className="px-3 py-1.5 rounded-[12px] bg-[var(--bg-elevated)] hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition-colors border border-[var(--border-subtle)]"
+                className="px-3 py-1.5 rounded-[12px] bg-[var(--accent-primary)] hover:bg-[#003888] text-xs font-bold text-white flex items-center gap-1.5 transition-colors border border-[var(--border-subtle)]"
               >
                 <Download size={14} /> Download CSV
               </button>

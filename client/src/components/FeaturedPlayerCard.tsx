@@ -66,7 +66,7 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="font-display font-bold text-sm text-[var(--text-primary)] truncate">{player.name}</h4>
-            <span className="text-[10px] font-mono text-[#38bdf8] font-semibold">{player.role}</span>
+            <span className="text-[10px] font-mono text-[var(--accent-sky,#82C8E5)] font-semibold">{player.role}</span>
           </div>
           <div className="text-xs text-[var(--text-secondary)] font-mono">
             Base: <span className="text-[var(--text-primary)] font-bold">{player.basePrice}L</span>
@@ -96,7 +96,7 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
 
         {/* Role Badge in Stage Framing */}
         <div className="absolute top-3 left-3 z-10">
-          <span className="px-2.5 py-1 rounded-[6px] text-[11px] font-mono font-bold uppercase tracking-wider bg-[var(--bg-base)]/85 text-[#38bdf8] border border-[#38bdf8]/30 shadow-md backdrop-blur-sm flex items-center gap-1.5">
+          <span className="px-2.5 py-1 rounded-[6px] text-[11px] font-mono font-bold uppercase tracking-wider bg-[var(--bg-base)]/90 text-[var(--accent-sky,#82C8E5)] border border-[var(--border-subtle)] shadow-md backdrop-blur-sm flex items-center gap-1.5">
             <Award size={12} />
             {player.role}
           </span>
@@ -104,7 +104,7 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
 
         {player.cricheroesUrl && (
           <div className="absolute bottom-3 left-3 z-10 hidden md:block">
-            <span className="px-2 py-0.5 rounded-[4px] bg-[#10b981]/20 border border-[#10b981]/40 text-[#10b981] text-[10px] font-bold flex items-center gap-1 backdrop-blur-sm">
+            <span className="px-2 py-0.5 rounded-[4px] bg-[var(--status-success)]/15 border border-[var(--status-success)]/30 text-[var(--status-success)] text-[10px] font-mono font-bold flex items-center gap-1 backdrop-blur-sm">
               <CheckCircle2 size={10} /> CricHeroes Verified
             </span>
           </div>
@@ -120,15 +120,15 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
               <h3 className="font-display font-bold text-2xl sm:text-3xl text-[var(--text-primary)] tracking-tight leading-tight">
                 {player.name}
               </h3>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className="text-xs text-[var(--text-secondary)] font-medium">
                   Base Price:
                 </span>
-                <span className="font-mono text-base text-[#38bdf8] font-black tabular-nums">
+                <span className="font-mono text-base text-[var(--accent-sky,#82C8E5)] font-black tabular-nums">
                   {player.basePrice} Lakhs
                 </span>
                 {player.previousTeamCode && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[4px] bg-[#c2a365]/15 text-[#c2a365] border border-[#c2a365]/30">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[4px] bg-[var(--accent-primary)]/20 text-[var(--accent-sky,#82C8E5)] border border-[var(--border-subtle)]">
                     RTM Eligible: {player.previousTeamCode}
                   </span>
                 )}
@@ -137,12 +137,12 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
 
             {/* Sync status */}
             {player.cricheroesStatus === 'pending' && (
-              <span className="text-xs font-medium text-[#38bdf8] flex items-center gap-1 bg-[#38bdf8]/10 px-2 py-1 rounded-[6px]">
+              <span className="text-xs font-mono font-medium text-[var(--accent-sky,#82C8E5)] flex items-center gap-1 bg-[var(--accent-primary)]/20 px-2.5 py-1 rounded-[6px] border border-[var(--border-subtle)]">
                 <Loader2 size={12} className="animate-spin" /> Syncing stats...
               </span>
             )}
             {player.cricheroesStatus === 'failed' && (
-              <span className="text-xs font-medium text-[#ef4444] flex items-center gap-1 bg-[#ef4444]/10 px-2 py-1 rounded-[6px]" title={player.cricheroesError}>
+              <span className="text-xs font-mono font-medium text-[var(--status-alert)] flex items-center gap-1 bg-[var(--status-alert)]/10 px-2.5 py-1 rounded-[6px] border border-[var(--status-alert)]/25" title={player.cricheroesError}>
                 <ShieldAlert size={12} /> Sync Unverified
               </span>
             )}
@@ -156,7 +156,7 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
                   <div className="text-[10px] uppercase font-bold text-[var(--text-secondary)] tracking-wider mb-0.5">
                     {primaryStat[0]}
                   </div>
-                  <div className="text-xl sm:text-2xl font-black font-mono text-[#c2a365] tabular-nums">
+                  <div className="text-xl sm:text-2xl font-black font-mono text-[var(--accent-sky,#82C8E5)] tabular-nums">
                     {primaryStat[1]}
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export const FeaturedPlayerCard: React.FC<FeaturedPlayerCardProps> = ({ player, 
               href={player.cricheroesUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold text-[#38bdf8] hover:text-[#0284c7] inline-flex items-center gap-1.5 transition-colors focus-ring"
+              className="text-xs font-mono font-semibold text-[var(--accent-sky,#82C8E5)] hover:underline inline-flex items-center gap-1.5 transition-colors focus-ring"
             >
               <span>View Official CricHeroes Career Record</span>
               <ExternalLink size={12} />

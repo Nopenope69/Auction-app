@@ -183,14 +183,14 @@ export const DesignShowcase: React.FC = () => {
           {/* THEME PICKER BUTTONS */}
           <div className="flex items-center gap-2 p-1 rounded-[16px] bg-[var(--bg-base)] border border-[var(--border-subtle)]">
             <button
-              onClick={() => setTheme('pear')}
+              onClick={() => setTheme('cobalt')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                theme === 'pear'
-                  ? 'bg-sky-500 text-black font-bold shadow'
+                theme === 'cobalt'
+                  ? 'bg-[var(--accent-primary)] text-white font-bold shadow'
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
-              <span>Pear.no (Cerulean &amp; Sand)</span>
+              <span>Cobalt Sky (Flagship)</span>
             </button>
             <button
               onClick={() => setTheme('telemetry')}
@@ -200,17 +200,17 @@ export const DesignShowcase: React.FC = () => {
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
-              <span>F1 Telemetry (Acid Volt)</span>
+              <span>F1 Telemetry</span>
             </button>
             <button
-              onClick={() => setTheme('heritage')}
+              onClick={() => setTheme('pear')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                theme === 'heritage'
-                  ? 'bg-[#d4af37] text-black font-bold shadow'
+                theme === 'pear'
+                  ? 'bg-sky-500 text-black font-bold shadow'
                   : 'text-[var(--text-secondary)] hover:text-white'
               }`}
             >
-              <span>Lord's (Champagne Gold)</span>
+              <span>Pear.no</span>
             </button>
           </div>
         </div>

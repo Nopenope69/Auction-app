@@ -39,18 +39,18 @@ export const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
           <div
             className={`flex items-center gap-3 px-4 py-3 rounded-[12px] shadow-2xl border backdrop-blur-md ${
               toast.type === 'warning'
-                ? 'bg-[#ef4444]/20 border-[#ef4444]/50 text-[#f2f1ed]'
+                ? 'bg-[var(--status-alert)]/20 border-[var(--status-alert)]/50 text-[var(--text-primary)]'
                 : toast.type === 'success'
-                ? 'bg-[#10b981]/20 border-[#10b981]/50 text-[#f2f1ed]'
-                : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[#f2f1ed]'
+                ? 'bg-[var(--status-success)]/20 border-[var(--status-success)]/50 text-[var(--text-primary)]'
+                : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-primary)]'
             }`}
           >
             {toast.type === 'warning' ? (
-              <AlertCircle size={18} className="text-[#ef4444] shrink-0" />
+              <AlertCircle size={18} className="text-[var(--status-alert)] shrink-0" />
             ) : toast.type === 'success' ? (
-              <CheckCircle size={18} className="text-[#10b981] shrink-0" />
+              <CheckCircle size={18} className="text-[var(--status-success)] shrink-0" />
             ) : (
-              <Info size={18} className="text-[#38bdf8] shrink-0" />
+              <Info size={18} className="text-[var(--accent-sky,#82C8E5)] shrink-0" />
             )}
             <div className="text-xs font-semibold select-none">{toast.message}</div>
             <button

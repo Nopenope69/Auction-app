@@ -23,8 +23,8 @@ export const InlineConfirm: React.FC<InlineConfirmProps> = ({
       role="alert"
       className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-[8px] border text-xs shadow-md animate-in fade-in duration-150 ${
         variant === 'danger'
-          ? 'bg-[#ef4444]/15 border-[#ef4444]/40 text-[#ef4444]'
-          : 'bg-[#c2a365]/15 border-[#c2a365]/40 text-[#c2a365]'
+          ? 'bg-[var(--accent-danger)]/15 border-[var(--accent-danger)]/40 text-[var(--accent-danger)]'
+          : 'bg-[var(--accent-sky)]/15 border-[var(--accent-sky)]/40 text-[var(--accent-sky)]'
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -33,7 +33,7 @@ export const InlineConfirm: React.FC<InlineConfirmProps> = ({
       <button
         type="button"
         onClick={onConfirm}
-        className="px-2 py-0.5 rounded-[6px] bg-[#ef4444] hover:bg-red-600 text-white font-bold text-[11px] transition-colors flex items-center gap-0.5 focus-ring"
+        className="px-2 py-0.5 rounded-[6px] bg-[var(--accent-danger)] hover:opacity-90 text-white font-bold text-[11px] transition-opacity flex items-center gap-0.5 focus-ring"
         title={confirmLabel}
       >
         <Check size={11} />
