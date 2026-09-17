@@ -158,9 +158,18 @@ export const Landing: React.FC = () => {
           playersCsv: playersCsv.trim() || undefined,
         }),
       });
-      const data = await res.json();
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // Non-JSON or empty response
+      }
       if (!res.ok) {
-        setError(data.error || 'Failed to create auction tournament.');
+        setError(data?.error || `Server error (${res.status}): ${res.statusText || 'Failed to create tournament'}`);
+        return;
+      }
+      if (!data || !data.roomId) {
+        setError('Server returned an invalid tournament response.');
         return;
       }
       setCreated({ roomId: data.roomId, adminToken: data.adminToken, teams: data.teams });

@@ -715,7 +715,7 @@ if (process.env.NODE_ENV !== 'test') {
   } catch (err) {
     console.warn('[DEMO] Could not auto-seed demo room:', err);
   }
-  server.listen(port, () => {
+  server.listen(port, '0.0.0.0', () => {
     console.log(`Cricket Auction Platform server running on port ${port}`);
   });
 }

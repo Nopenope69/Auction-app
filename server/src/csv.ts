@@ -72,7 +72,7 @@ export function parseCsv(csvText: string): CsvParseResult {
       role,
       basePrice: Number.isFinite(basePrice) ? basePrice : 20,
       photoUrl: getVal('photourl') || getVal('imageurl') || undefined,
-      previousTeamCode: getVal('previousteam') || undefined,
+      previousTeamCode: getVal('previousteamcode') || getVal('previousteam') || undefined,
       status: 'available',
       runs: numOrUndef(getVal('runs')),
       wickets: numOrUndef(getVal('wickets')),
