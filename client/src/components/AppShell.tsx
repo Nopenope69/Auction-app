@@ -37,6 +37,8 @@ interface AppShellProps {
   lastError?: AuctionErrorEvent | null;
   clearError?: () => void;
   reactionEmojiList?: Reaction[];
+  latencyMs?: number | null;
+  connectionQuality?: 'excellent' | 'good' | 'fair' | 'degraded' | 'disconnected';
   onOpenTeamLinks?: () => void;
   onExportCsv?: () => void;
   onEndAuction?: () => void;
@@ -56,6 +58,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   lastError,
   clearError,
   reactionEmojiList = [],
+  latencyMs,
+  connectionQuality,
   onOpenTeamLinks,
   onExportCsv,
   onEndAuction,
@@ -204,6 +208,47 @@ export const AppShell: React.FC<AppShellProps> = ({
 
           {/* Right: Actions, Sound, Role, Tools */}
           <div className="flex items-center gap-2">
+            {/* Live Telemetry / Network Latency Indicator */}
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono transition-colors ${
+                connectionStatus !== 'connected'
+                  ? 'bg-[#ff4b55]/15 border-[#ff4b55]/40 text-[#ff4b55]'
+                  : connectionQuality === 'excellent'
+                  ? 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-primary)]'
+                  : connectionQuality === 'good'
+                  ? 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--accent-sky,#82C8E5)]'
+                  : connectionQuality === 'fair'
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                  : 'bg-[#ff4b55]/15 border-[#ff4b55]/40 text-[#ff4b55]'
+              }`}
+              title={
+                connectionStatus !== 'connected'
+                  ? `Connection: ${connectionStatus}`
+                  : `WebSocket RTT Latency: ${latencyMs ?? '...'}ms (${connectionQuality})`
+              }
+            >
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  connectionStatus !== 'connected'
+                    ? 'bg-[#ff4b55] animate-pulse'
+                    : connectionQuality === 'excellent'
+                    ? 'bg-[#00d284]'
+                    : connectionQuality === 'good'
+                    ? 'bg-[var(--accent-sky,#82C8E5)]'
+                    : connectionQuality === 'fair'
+                    ? 'bg-amber-400'
+                    : 'bg-[#ff4b55] animate-pulse'
+                }`}
+              />
+              <span className="text-[11px] font-semibold tabular-nums">
+                {connectionStatus !== 'connected'
+                  ? 'Offline'
+                  : latencyMs !== null
+                  ? `${latencyMs}ms`
+                  : 'Live'}
+              </span>
+            </div>
+
             {/* Theme Switcher Pill */}
             <button
               onClick={cycleTheme}

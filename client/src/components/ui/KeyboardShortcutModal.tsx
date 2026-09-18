@@ -9,11 +9,12 @@ interface KeyboardShortcutModalProps {
 
 const SHORTCUTS = [
   { key: 'Space', label: 'Start / Pause Countdown Timer', description: 'Toggles the lot clock' },
-  { key: 'S', label: 'Sold (Gavel Drop)', description: 'Awards active player to highest bidder' },
+  { key: 'S', label: 'Fair Warning / Strike Gavel', description: 'Arms Fair Warning on 1st tap; strikes gavel on 2nd tap' },
+  { key: 'W', label: 'Toggle Fair Warning Arming', description: 'Quickly arms or disarms the gavel safeguard' },
   { key: 'U', label: 'Mark Unsold', description: 'Passes active player without sale' },
   { key: 'Z', label: 'Undo Last Gavel Strike', description: 'Restores player and refunds purse' },
+  { key: 'Esc', label: 'Disarm Gavel / Dismiss Dialogs', description: 'Cancels armed warning or closes overlays' },
   { key: '?', label: 'Open Shortcuts Cheatsheet', description: 'Displays this reference modal' },
-  { key: 'Esc', label: 'Dismiss Modals / Overlays', description: 'Closes any open overlay or dialog' },
 ];
 
 export const KeyboardShortcutModal: React.FC<KeyboardShortcutModalProps> = ({ isOpen, onClose }) => {

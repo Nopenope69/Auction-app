@@ -152,6 +152,11 @@ export const ReactionSchema = z.object({
   }),
 });
 
+export const PingSchema = z.object({
+  type: z.literal('PING'),
+  timestamp: z.number(),
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   PlaceBidSchema,
   SetActivePlayerSchema,
@@ -164,6 +169,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   ResetSchema,
   EndAuctionSchema,
   ReactionSchema,
+  PingSchema,
 ]);
 
 // Server -> client
@@ -198,7 +204,13 @@ export interface ErrorMessage {
   message: string;
 }
 
-export type ServerMessage = SyncMessage | ReactionMessage | ErrorMessage;
+export interface PongMessage {
+  type: 'PONG';
+  timestamp: number;
+  serverTime: number;
+}
+
+export type ServerMessage = SyncMessage | ReactionMessage | ErrorMessage | PongMessage;
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 

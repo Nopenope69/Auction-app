@@ -131,6 +131,8 @@ export const SpectatorView: React.FC<SpectatorViewProps> = ({ roomId, token, rol
       lastError={auction.lastError}
       clearError={auction.clearError}
       reactionEmojiList={auction.reactionEmojiList}
+      latencyMs={auction.latencyMs}
+      connectionQuality={auction.connectionQuality}
       onExportCsv={handleExportCsv}
     >
       <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">

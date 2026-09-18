@@ -94,17 +94,71 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
   const unsoldCount = useMemo(() => auction.players.filter((p) => p.status === 'unsold').length, [auction.players]);
 
   const [soldExplosionActive, setSoldExplosionActive] = useState(false);
+  const [gavelArmed, setGavelArmed] = useState(false);
+  const [twoStageEnabled, setTwoStageEnabled] = useState(true);
+  const [disarmNotice, setDisarmNotice] = useState<string | null>(null);
+
+  // Auto-disarm on new bid arrival
+  useEffect(() => {
+    if (gavelArmed) {
+      setGavelArmed(false);
+      setDisarmNotice(`Bid increased to ₹${auction.currentBid}L! Gavel disarmed.`);
+      const t = setTimeout(() => setDisarmNotice(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [auction.currentBid, auction.highestBidder]);
+
+  // Reset gavel arming on active player change
+  useEffect(() => {
+    setGavelArmed(false);
+    setDisarmNotice(null);
+  }, [auction.activePlayer?.id]);
 
   // Gavel action handlers
   const handleSold = () => {
     if (!auction.activePlayer) return;
     auction.markSold();
     setSoldExplosionActive(true);
+    setGavelArmed(false);
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+  };
+
+  const handleGavelClick = () => {
+    if (!auction.activePlayer) return;
+    if (!twoStageEnabled) {
+      handleSold();
+      return;
+    }
+    if (!gavelArmed) {
+      setGavelArmed(true);
+      setDisarmNotice(null);
+      // Play brief fair-warning audio tone (D5 587Hz)
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain ? audioCtx.createGain() : (audioCtx as any).createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      } catch (e) {
+        // audio context may be blocked by browser policy
+      }
+    } else {
+      handleSold();
+    }
+  };
+
+  const handleDisarm = () => {
+    setGavelArmed(false);
   };
 
   const handleUnsold = () => {
     if (!auction.activePlayer) return;
+    setGavelArmed(false);
     auction.markUnsold();
   };
 
@@ -127,7 +181,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
       } else if (e.key === 's' || e.key === 'S') {
         if (auction.activePlayer && auction.status !== 'completed') {
           e.preventDefault();
-          handleSold();
+          handleGavelClick();
+        }
+      } else if (e.key === 'w' || e.key === 'W') {
+        if (auction.activePlayer && auction.status !== 'completed' && twoStageEnabled) {
+          e.preventDefault();
+          setGavelArmed((prev) => !prev);
+          setDisarmNotice(null);
+        }
+      } else if (e.key === 'Escape') {
+        if (gavelArmed) {
+          e.preventDefault();
+          setGavelArmed(false);
         }
       } else if (e.key === 'u' || e.key === 'U') {
         if (auction.activePlayer && auction.status !== 'completed') {
@@ -147,7 +212,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [auction.activePlayer, auction.timerActive, auction.undoAvailable, auction.status, showAddPlayerModal, showTeamLinksModal]);
+  }, [auction.activePlayer, auction.timerActive, auction.undoAvailable, auction.status, showAddPlayerModal, showTeamLinksModal, gavelArmed, twoStageEnabled]);
 
   // Team Links fetcher
   const handleFetchTeamLinks = async () => {
@@ -316,6 +381,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
       lastError={auction.lastError}
       clearError={auction.clearError}
       reactionEmojiList={auction.reactionEmojiList}
+      latencyMs={auction.latencyMs}
+      connectionQuality={auction.connectionQuality}
       onOpenTeamLinks={handleFetchTeamLinks}
       onExportCsv={() => {
         const csv = buildResultsCsv(auction);
@@ -719,18 +786,72 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                   </div>
                 </div>
 
+                {/* Auto-disarm notice banner */}
+                {disarmNotice && (
+                  <div className="mb-2 px-3 py-2 rounded-[8px] bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle size={14} className="shrink-0 text-amber-400" />
+                      <span className="font-semibold">{disarmNotice}</span>
+                    </div>
+                    <button onClick={() => setDisarmNotice(null)} className="text-amber-400/70 hover:text-amber-300 text-xs">✕</button>
+                  </div>
+                )}
+
+                {/* Fair Warning armed banner */}
+                {gavelArmed && (
+                  <div className="mb-2 px-3 py-2 rounded-[8px] bg-amber-500/20 border border-amber-500/50 text-amber-200 text-xs flex items-center justify-between animate-pulse">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                      <span className="font-bold tracking-wider uppercase">FAIR WARNING ARMED:</span>
+                      <span>Going once... going twice...</span>
+                    </div>
+                    <button
+                      onClick={handleDisarm}
+                      className="px-2 py-0.5 rounded bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-[11px] font-semibold text-[var(--text-primary)] border border-amber-500/40 transition-colors"
+                    >
+                      Disarm [Esc]
+                    </button>
+                  </div>
+                )}
+
                 {/* PHYSICAL GAVEL ACTION BUTTONS (ALWAYS VISIBLE ABOVE THE FOLD) */}
                 <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[var(--border-subtle)]">
-                  <button
-                    onClick={handleSold}
-                    className="py-3 px-3 rounded-[12px] bg-[var(--status-success)] hover:brightness-110 active:scale-[0.98] text-[#030712] font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Gavel size={15} />
-                      <span>SOLD</span>
-                    </div>
-                    <kbd className="text-[10px] font-mono opacity-80">[S]</kbd>
-                  </button>
+                  {twoStageEnabled ? (
+                    gavelArmed ? (
+                      <button
+                        onClick={handleGavelClick}
+                        className="py-3 px-3 rounded-[12px] bg-[var(--status-success)] hover:brightness-110 active:scale-[0.98] text-[#030712] font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all ring-2 ring-amber-400 ring-offset-2 ring-offset-[var(--bg-card)] animate-pulse"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Gavel size={15} className="animate-bounce" />
+                          <span>STRIKE GAVEL</span>
+                        </div>
+                        <kbd className="text-[10px] font-mono opacity-80">[S] FINAL HAMMER</kbd>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleGavelClick}
+                        className="py-3 px-3 rounded-[12px] bg-[var(--accent-primary,#0047AB)] hover:brightness-110 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Gavel size={15} />
+                          <span>FAIR WARNING</span>
+                        </div>
+                        <kbd className="text-[10px] font-mono opacity-80">[S] / [W] ARM</kbd>
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      onClick={handleSold}
+                      className="py-3 px-3 rounded-[12px] bg-[var(--status-success)] hover:brightness-110 active:scale-[0.98] text-[#030712] font-black text-xs uppercase tracking-wider shadow-lg flex flex-col items-center justify-center gap-1 focus-ring transition-all"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Gavel size={15} />
+                        <span>SOLD</span>
+                      </div>
+                      <kbd className="text-[10px] font-mono opacity-80">[S]</kbd>
+                    </button>
+                  )}
 
                   <button
                     onClick={handleUnsold}
@@ -754,6 +875,31 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ roomId, token, role,
                     </div>
                     <kbd className="text-[10px] font-mono opacity-60">[Z]</kbd>
                   </button>
+                </div>
+
+                {/* Safeguard toggle & disarm link */}
+                <div className="flex items-center justify-between pt-2 text-[11px] text-[var(--text-secondary)]">
+                  <label className="flex items-center gap-1.5 cursor-pointer hover:text-[var(--text-primary)] transition-colors select-none">
+                    <input
+                      type="checkbox"
+                      checked={twoStageEnabled}
+                      onChange={(e) => {
+                        setTwoStageEnabled(e.target.checked);
+                        if (!e.target.checked) setGavelArmed(false);
+                      }}
+                      className="rounded border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--accent-primary,#0047AB)] focus:ring-0 cursor-pointer"
+                    />
+                    <Shield size={12} className={twoStageEnabled ? "text-[var(--accent-sky,#82C8E5)]" : "text-[var(--text-muted)]"} />
+                    <span>2-stage hammer safeguard</span>
+                  </label>
+                  {gavelArmed && (
+                    <button
+                      onClick={handleDisarm}
+                      className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                    >
+                      Cancel Fair Warning [Esc]
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (

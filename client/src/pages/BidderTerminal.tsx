@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuction, Role } from '../hooks/useAuction';
+import { useAuction, Role, Player } from '../hooks/useAuction';
 import { useAuctionDerived } from '../hooks/useAuctionDerived';
 import { PitchRoster } from '../components/PitchRoster';
 import { FeaturedPlayerCard } from '../components/FeaturedPlayerCard';
@@ -139,6 +139,21 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
   const spent = (derived.originalPurse ?? purse) - purse;
   const spentPercent = derived.spentPercent ?? 0;
 
+  // Real-Time Squad Constraints and Roster Mathematics
+  const squadPlayers: Player[] = team?.players || [];
+  const totalRosterCount = squadPlayers.length;
+  const targetSquadMin = 15;
+  const targetSquadMax = 25;
+  const openSlots = Math.max(0, targetSquadMin - totalRosterCount);
+  const batCount = squadPlayers.filter((p: Player) => p.role?.toLowerCase().includes('bat')).length;
+  const bowlCount = squadPlayers.filter((p: Player) => p.role?.toLowerCase().includes('bowl')).length;
+  const arCount = squadPlayers.filter((p: Player) => p.role?.toLowerCase().includes('all') || p.role?.toLowerCase().includes('ar')).length;
+  const wkCount = squadPlayers.filter((p: Player) => p.role?.toLowerCase().includes('keeper') || p.role?.toLowerCase().includes('wk')).length;
+  const activeRole = auction.activePlayer?.role;
+  const minBasePrice = 20;
+  const reservedPurse = Math.max(0, openSlots * minBasePrice);
+  const safeSpendablePurse = Math.max(0, purse - reservedPurse);
+
   const handlePlaceBid = (amount?: number) => {
     AudioEngine.init();
     AudioEngine.playBidSound();
@@ -157,6 +172,8 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
       lastError={auction.lastError}
       clearError={auction.clearError}
       reactionEmojiList={auction.reactionEmojiList}
+      latencyMs={auction.latencyMs}
+      connectionQuality={auction.connectionQuality}
     >
       <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto p-4 sm:p-6 gap-4">
         {/* TOP PURSE TELEMETRY BAR (ALWAYS VISIBLE ABOVE THE FOLD) */}
@@ -340,28 +357,82 @@ export const BidderTerminal: React.FC<BidderTerminalProps> = ({ roomId, token, r
                 )}
               </button>
 
-              {/* QUICK INCREMENT BUTTON PILLS */}
+              {/* PINNED SQUAD CONSTRAINT HUD */}
+              <div className="p-3.5 rounded-[12px] bg-[var(--bg-base)] border border-[var(--border-subtle)] flex flex-col gap-2 shadow-inner">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <Users size={13} className="text-[var(--accent-sky,#82C8E5)]" />
+                    <span>Squad: <span className="font-mono text-[var(--accent-sky,#82C8E5)]">{totalRosterCount}</span>/{targetSquadMin} min</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-[var(--text-secondary)]">
+                    {openSlots > 0 ? `${openSlots} slots needed` : 'Roster complete'}
+                  </span>
+                </div>
+
+                {/* Role Allocation Pills with Live (+1) Pulse on active role */}
+                <div className="grid grid-cols-4 gap-1.5 text-center font-mono text-[11px]">
+                  <div className={`py-1 px-1 rounded-[8px] border transition-colors ${activeRole === 'Batsman' ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-sky,#82C8E5)] text-[var(--accent-sky,#82C8E5)] font-bold shadow-sm' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}`}>
+                    <span className="text-[9px] block text-[var(--text-tertiary)] uppercase font-sans">BAT</span>
+                    <span>{batCount} {activeRole === 'Batsman' && <span className="text-[9px] text-[var(--accent-sky,#82C8E5)] font-bold animate-pulse">+1</span>}</span>
+                  </div>
+                  <div className={`py-1 px-1 rounded-[8px] border transition-colors ${activeRole === 'Bowler' ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-sky,#82C8E5)] text-[var(--accent-sky,#82C8E5)] font-bold shadow-sm' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}`}>
+                    <span className="text-[9px] block text-[var(--text-tertiary)] uppercase font-sans">BOWL</span>
+                    <span>{bowlCount} {activeRole === 'Bowler' && <span className="text-[9px] text-[var(--accent-sky,#82C8E5)] font-bold animate-pulse">+1</span>}</span>
+                  </div>
+                  <div className={`py-1 px-1 rounded-[8px] border transition-colors ${activeRole === 'All-Rounder' ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-sky,#82C8E5)] text-[var(--accent-sky,#82C8E5)] font-bold shadow-sm' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}`}>
+                    <span className="text-[9px] block text-[var(--text-tertiary)] uppercase font-sans">AR</span>
+                    <span>{arCount} {activeRole === 'All-Rounder' && <span className="text-[9px] text-[var(--accent-sky,#82C8E5)] font-bold animate-pulse">+1</span>}</span>
+                  </div>
+                  <div className={`py-1 px-1 rounded-[8px] border transition-colors ${activeRole === 'Wicketkeeper' ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-sky,#82C8E5)] text-[var(--accent-sky,#82C8E5)] font-bold shadow-sm' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}`}>
+                    <span className="text-[9px] block text-[var(--text-tertiary)] uppercase font-sans">WK</span>
+                    <span>{wkCount} {activeRole === 'Wicketkeeper' && <span className="text-[9px] text-[var(--accent-sky,#82C8E5)] font-bold animate-pulse">+1</span>}</span>
+                  </div>
+                </div>
+
+                {/* Minimum Reserve Budget Indicator */}
+                {openSlots > 0 && (
+                  <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)] text-[10px] text-[var(--text-secondary)] font-mono">
+                    <span>Reserved: <span className="text-[var(--text-primary)] font-semibold">{reservedPurse}L</span> for {openSlots} slots</span>
+                    <span className="font-bold text-[var(--accent-sky,#82C8E5)]">Safe Max: {safeSpendablePurse}L</span>
+                  </div>
+                )}
+              </div>
+
+              {/* QUICK INCREMENT BUTTON PILLS WITH IMPACT MODELING */}
               <div>
-                <span className="text-xs font-semibold text-[var(--text-secondary)] mb-2 block">
-                  Tactical Increments
-                </span>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-semibold text-[var(--text-secondary)]">
+                    Tactical Increments
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    Live Post-Bid Balance
+                  </span>
+                </div>
                 <div className="grid grid-cols-4 gap-2">
                   {[5, 10, 25, 50].map((inc) => {
                     const targetBid = currentVal + inc;
+                    const remAfterBid = purse - targetBid;
+                    const breaksReserve = openSlots > 0 && remAfterBid < reservedPurse;
                     const isDisabled = isBidDisabled || purse < targetBid || auction.connectionStatus !== 'connected';
                     return (
                       <button
                         key={inc}
                         disabled={isDisabled}
                         onClick={() => handlePlaceBid(targetBid)}
-                        className={`py-2.5 px-1.5 rounded-[12px] text-xs font-bold transition-all border flex flex-col items-center justify-center focus-ring ${
+                        className={`py-2 px-1 rounded-[12px] text-xs font-bold transition-all border flex flex-col items-center justify-center focus-ring ${
                           isDisabled
                             ? 'bg-[var(--bg-base)]/40 text-[var(--text-tertiary)] border-[var(--border-subtle)]/40 cursor-not-allowed'
+                            : breaksReserve
+                            ? 'bg-[var(--bg-base)] text-amber-300 border-amber-500/40 hover:border-amber-400 hover:bg-[var(--bg-elevated)] active:scale-95'
                             : 'bg-[var(--bg-base)] text-[var(--accent-sky,#82C8E5)] border-[var(--border-subtle)] hover:border-[var(--accent-sky,#82C8E5)] hover:bg-[var(--bg-elevated)] active:scale-95'
                         }`}
+                        title={breaksReserve ? `Warning: Bidding ${targetBid}L leaves ${remAfterBid}L, dipping below the ${reservedPurse}L reserved squad budget.` : `Bid ${targetBid}L (Leaves ${remAfterBid}L)`}
                       >
-                        <span className="font-bold">+{inc}L</span>
+                        <span className="font-bold text-xs">+{inc}L</span>
                         <span className="text-[10px] font-mono text-[var(--text-secondary)] tabular-nums">({targetBid}L)</span>
+                        <span className={`text-[9px] font-mono tabular-nums ${breaksReserve ? 'text-amber-400 font-semibold' : 'text-[var(--text-tertiary)]'}`}>
+                          Rem: {Math.max(0, remAfterBid)}L
+                        </span>
                       </button>
                     );
                   })}

@@ -687,6 +687,10 @@ wss.on('connection', (ws, req) => {
           }
           break;
 
+        case 'PING':
+          ws.send(JSON.stringify({ type: 'PONG', timestamp: msg.timestamp, serverTime: Date.now() }));
+          break;
+
         default:
           break;
       }

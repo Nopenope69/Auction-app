@@ -150,6 +150,8 @@ function wsUrl(roomId: string, role: Role, token?: string | null, teamId?: strin
 
 export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [clockDriftMs, setClockDriftMs] = useState<number>(0);
   const [state, setState] = useState<AuctionState>(EMPTY_STATE);
   const [reactionEmojiList, setReactionEmojiList] = useState<Reaction[]>([]);
   const [lastError, setLastError] = useState<AuctionErrorEvent | null>(null);
@@ -163,7 +165,12 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
     const ws = new WebSocket(wsUrl(roomId, role, token, teamId));
     wsRef.current = ws;
 
-    ws.onopen = () => setConnectionStatus('connected');
+    ws.onopen = () => {
+      setConnectionStatus('connected');
+      try {
+        ws.send(JSON.stringify({ type: 'PING', timestamp: Date.now() }));
+      } catch {}
+    };
 
     ws.onmessage = (event) => {
       try {
@@ -205,6 +212,12 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
             ...prev,
             { id: Math.random().toString(), emoji: data.emoji, x: Math.random() * 80 + 10, timestamp: Date.now() },
           ]);
+        } else if (data.type === 'PONG') {
+          const rtt = Math.max(1, Date.now() - data.timestamp);
+          setLatencyMs(rtt);
+          if (typeof data.serverTime === 'number') {
+            setClockDriftMs(data.serverTime - (data.timestamp + Math.round(rtt / 2)));
+          }
         } else if (data.type === 'ERROR') {
           // Server rejected the last mutation this client sent (stale bid,
           // insufficient purse, nothing to undo, etc). Every screen's own
@@ -237,6 +250,7 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
         return;
       }
       setConnectionStatus('disconnected');
+      setLatencyMs(null);
       reconnectTimer.current = setTimeout(connect, 2500);
     };
     ws.onerror = () => ws.close();
@@ -250,6 +264,19 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
       wsRef.current?.close();
     };
   }, [connect]);
+
+  // Telemetry Heartbeat Ping every 4s
+  useEffect(() => {
+    if (connectionStatus !== 'connected') return;
+    const interval = setInterval(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        try {
+          wsRef.current.send(JSON.stringify({ type: 'PING', timestamp: Date.now() }));
+        } catch {}
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [connectionStatus]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -275,8 +302,24 @@ export const useAuction = ({ roomId, token, role, teamId }: UseAuctionParams) =>
     }
   };
 
+  const connectionQuality: 'excellent' | 'good' | 'fair' | 'degraded' | 'disconnected' =
+    connectionStatus !== 'connected'
+      ? 'disconnected'
+      : latencyMs === null
+      ? 'good'
+      : latencyMs < 80
+      ? 'excellent'
+      : latencyMs < 180
+      ? 'good'
+      : latencyMs < 350
+      ? 'fair'
+      : 'degraded';
+
   return {
     connectionStatus,
+    latencyMs,
+    clockDriftMs,
+    connectionQuality,
     ...state,
     reactionEmojiList,
     lastError,
